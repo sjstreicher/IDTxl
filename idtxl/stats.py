@@ -185,12 +185,12 @@ def omnibus_test(analysis_setup, data, opts=None): # TODO we don't need the opts
         i_1 = i_2
         i_2 += data.n_realisations(analysis_setup.current_value)
         '''
-    surr_cond_real = _get_surrogates(data,
-                                     analysis_setup.current_value,
-                                     analysis_setup.selected_vars_sources,
-                                     n_permutations,
-                                     perm_range)
-
+    surr_cond_real = _get_surrogates(
+                                data=data,
+                                current_value=analysis_setup.current_value,
+                                idx_list=analysis_setup.selected_vars_sources,
+                                n_perm=n_permutations,
+                                perm_opts=analysis_setup.options)                                      
     surr_distribution = analysis_setup._cmi_calculator.estimate_mult(
                             n_chunks=n_permutations,
                             options=analysis_setup.options,
