@@ -5,6 +5,7 @@ Created on Mon Mar  7 18:13:27 2016
 @author: patricia
 """
 import numpy as np
+from scipy import signal as sign
 from . import idtxl_utils as utils
 
 VERBOSE = True
@@ -804,10 +805,10 @@ class Data():
         """Generate example data for a 5-process network.
 
         Generate example data and overwrite the instance's current data. The
-        network is used as an example the paper on the MuTE toolbox (Montalto,
+        network is used as an example in the MuTE toolbox paper (Montalto,
         PLOS ONE, 2014, eq. 14). The network consists of five autoregressive
-        (AR) processes with model orders 2 and les and the following
-        (non-linear) couplings:
+        (AR) processes with model orders 2 and the following (non-linear)
+        couplings:
 
         0 -> 1, u = 2
         0 -> 2, u = 3
@@ -846,3 +847,109 @@ class Data():
                               term_2 * x[4, n - 1, r] +
                               np.random.normal())
         self.set_data(x[:, 3:, :], 'psr')
+
+    def generate_faes_data(self, n_samples=1000, n_replications=10):
+        """Generate example data for a 4-process network.
+
+        Generate example data and overwrite the instance's current data. The
+        network is taken from Faes paper.
+
+        Args:
+            n_samples : int
+                number of samples simulated for each process and replication
+            n_replications : int
+                number of replications
+        """
+        n_processes = 4
+        x = np.zeros((n_processes, n_samples + 3, n_replications))
+        x[:, 0:3, :] = np.random.normal(size=(n_processes, 3, n_replications))
+        term_1 = 0.8 * np.sqrt(2)
+        delay = 1
+        for r in range(n_replications):
+            for n in range(3, n_samples + 3):
+                x[0, n, r] = (term_1 * x[0, n - 1, r] -
+                              0.64 * x[0, n - 2, r] +
+                              0.7 * x[2, n-2, r] +
+                              np.random.normal())
+                x[1, n, r] = (x[0, n - delay, r] - 0.5 * x[0, n - 2, r] -
+                              0.64 * x[1, n-2, r] + np.random.normal())
+                x[2, n, r] = 0.5 * x[1, n - delay, r] + np.random.normal()
+                x[3, n, r] = 0.5 * x[1, n - delay, r] + np.random.normal()
+
+        x = x[:, 3:, :]
+        # plt.figure(1)
+        # plt.plot(x[1, :, 0])
+        # plt.show()
+        # spectrum1 = sign.welch(x[1, :, 0])
+        # plt.figure(2)
+        # plt.plot(10*np.log10(spectrum1[1]))
+        # # plt.ylim([0.5e-3, 1])
+        # plt.xlabel('frequency [Hz]')
+        # plt.ylabel('PSD [V**2/Hz]')
+        self.set_data(x[:, :, :], 'psr')
+
+    def generate_spectral_data(self, n_samples=1000, n_replications=10,
+                               delay=2):
+        """Generate example data for a 4-process network.
+
+        Generate example data and overwrite the instance's current data. The
+        network is used to test spectral TE. The network consists of four
+        autoregressive (AR) processes with model orders 2
+
+        Causality was chosen to occur always in the gamma band at 33 Hz. The
+        coefficient of the first (AR) are chosen to obtain a spectral peak at
+        33 HZ.
+
+        Args:
+            n_samples : int
+                number of samples simulated for each process and replication
+            n_replications : int
+                number of replications
+            delay: int
+                interaction delay
+        """
+        # Define coeff AR process
+        a = 1.337
+        b = -0.98
+        c = 0.21  # np.random.random()   # varying causality
+        a_2 = a**2
+        b_2 = b**2
+        c_2 = c**2
+
+        w = np.arccos(a * (b - 1) / (4 * b))   # see thesis Jiru (relationship between spectral peak and ar coeff form AR(2) or AR(3))
+        causal = np.log(1 + (c_2 / (a_2 + b_2 + 2 * a * np.cos(w) * (b - 1) -
+                                    2 * b * np.cos(2 * w) + 1)))
+
+        # solve for c
+        if causal > 0:
+            print("causality {0}".format(causal))
+            n_processes = 4
+            x = np.zeros((n_processes, n_samples + 3,
+                          n_replications))
+            x[:, 0:3, :] = np.random.normal(size=(n_processes, 3,
+                                                  n_replications))
+
+            for r in range(n_replications):
+                for n in range(3, n_samples + 3):
+                    x[0, n, r] = (b * x[0, n - 2, r] + a * x[0, n - 1, r] +
+                                  np.random.normal())
+                    x[1, n, r] = (0.2 * x[1, n - 2, r] + 0.5 * x[1, n - 1, r] +
+                                  c * x[0, n - delay, r] + np.random.normal())
+                    x[2, n, r] = (0.5 * x[1, n - delay, r] +
+                                  np.random.normal())
+                    x[3, n, r] = (0.5 * x[1, n - delay, r] +
+                                  np.random.normal())
+
+            x = x[:, 3:, :]
+            # plt.figure(1)
+            # plt.plot(x[0,:,0])
+            # plt.show()
+            # spectrum1=sign.welch(x[0,:,0])
+            # plt.figure(2)
+            # plt.plot(10*np.log10(spectrum1[1]))
+            # #plt.ylim([0.5e-3, 1])
+            # plt.xlabel('frequency [Hz]')
+            # plt.ylabel('PSD [V**2/Hz]')
+            self.set_data(x[:, :, :], 'psr')
+        else:
+            print('no causal interaction)')
