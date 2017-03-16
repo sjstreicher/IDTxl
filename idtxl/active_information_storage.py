@@ -77,8 +77,7 @@ class Active_information_storage(Single_process_analysis):
         self.tau = tau
         self.pvalue = None
         self.sign = False
-        self.ais = None
-        self.options = options
+        self.ais = None        
         self._min_stats_surr_table = None
         try:
             self.calculator_name = options['cmi_calc_name']
@@ -86,7 +85,7 @@ class Active_information_storage(Single_process_analysis):
             raise KeyError('Calculator name was not specified!')
         print('\n\nSetting calculator to: {0}'.format(self.calculator_name))
         self._cmi_calculator = Estimator_cmi(self.calculator_name)
-        super().__init__()
+        super().__init__(options)
 
     def analyse_network(self, data, processes='all'):
         """Estimate active information storage for multiple network processes.

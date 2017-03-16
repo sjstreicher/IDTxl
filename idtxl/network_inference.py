@@ -60,9 +60,8 @@ class Network_inference(Network_analysis):
         self.sign_sign_sources = None
         self.pvalue_omnibus = None
         self.pvalues_sign_sources = None
-        self.options = options
         self._min_stats_surr_table = None
-        super().__init__()
+        super().__init__(options)
 
     def _initialise(self, data, sources, target):
         """Check input and set everything to initial values."""

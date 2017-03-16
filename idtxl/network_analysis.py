@@ -16,7 +16,7 @@ class Network_analysis():
     The class provides routines to check user input and set defaults.
     """
 
-    def __init__(self):
+    def __init__(self, options):
         self.target = None
         self.current_value = None
         self.selected_vars_full = []
@@ -24,6 +24,7 @@ class Network_analysis():
         self.selected_vars_target = []
         self._current_value_realisations = None
         self._selected_vars_realisations = None
+        self.options = options
 
     @property
     def current_value(self):

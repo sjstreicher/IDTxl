@@ -43,8 +43,7 @@ class Partial_information_decomposition(Single_process_analysis):
         if VERBOSE:
             print('\nSetting calculator to: {0}'.format(self.calculator_name))
         self._pid_calculator = Estimator_pid(self.calculator_name)
-        self.options = options
-        super().__init__()
+        super().__init__(options)
 
     def analyse_network(self, data, targets, sources, lags):
         """Estimate partial information decomposition for network nodes.
