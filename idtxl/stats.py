@@ -959,15 +959,18 @@ def _get_surrogates(data, current_value, idx_list, n_perm,
     return surrogates
 
 
-def _generate_spectral_surrogates(data, scale, n_perm, perm_opts=None):
-    """Generate surrogate data for statistical testing of spectral TE.
+def _get_spectral_surrogates(data, scale, n_perm, perm_opts=None):
+    """Return surrogate data for statistical testing of spectral TE.
 
-    The method for surrogate generation depends on whether sufficient
-    replications of the data exists. If the number of replications is high
-    enough (reps! > n_permutations), surrogates are created by shuffling data
-    over replications (while keeping the temporal order of samples intact). If
-    the number of replications is too low, samples are shuffled over time
-    (while keeping the order of replications intact).
+    Calls surrogate generation methods of the data instance for testing of 
+    spectral transfer entropy (TE). The method for surrogate generation depends 
+    on whether sufficient replications of the data exists. If the number of 
+    replications is high enough (reps! > n_permutations), surrogates are 
+    created by shuffling data over replications (while keeping the temporal 
+    order of samples intact). If the number of replications is too low, samples 
+    are shuffled over time (while keeping the order of replications intact).
+    The latter method can be forced by setting 'permute_in_time' to True in 
+    'perm_opts'.
 
     Args:
         data : Data instance
@@ -977,7 +980,10 @@ def _generate_spectral_surrogates(data, scale, n_perm, perm_opts=None):
         n_perm : int
             number of permutations
         perm_opts : dict [optional]
-            options for surrogate creation by shuffling samples over time
+            options for surrogate creation by shuffling samples over time, set
+            'permute_in_time' to True to create surrogates by shuffling data
+            over time. See Data.permute_samples() for options for surrogate
+            creation.
 
     Returns:
         numpy array
@@ -989,14 +995,18 @@ def _generate_spectral_surrogates(data, scale, n_perm, perm_opts=None):
     # Allocate memory for surrogates
     surrogates = np.empty((data.n_samples, data.n_replications,
                            n_perm)).astype(data.data_type)
+                           
+    # Check if the user requested to permute samples in time and not over
+    # replications (default)
+    permute_in_time = perm_opts.get('permute_in_time', False)                           
 
     # Generate surrogates by permuting over replications if possible (no.
     # replications needs to be sufficient); else permute samples over time.
-    if _sufficient_replications(data, n_perm):  # permute replications
-        for perm in range(n_perm):
+    if _sufficient_replications(data, n_perm)  and not permute_in_time:  
+        for perm in range(n_perm):  # permute replications
             surrogates[:, :, perm] = data.slice_permute_replications(scale)[0]
-    else:  # permute samples
-        for perm in range(n_perm):
+    else:  
+        for perm in range(n_perm):  # permute samples
             surrogates[:, :, perm] = data.slice_permute_samples(scale,
                                                                 perm_opts)[0]
     return surrogates

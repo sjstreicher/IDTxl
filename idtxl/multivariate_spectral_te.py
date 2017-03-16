@@ -12,6 +12,7 @@ from .set_estimator import Estimator_cmi
 from .data import Data
 from . import modwt
 import copy as cp
+
 VERBOSE = True
 
 
@@ -56,7 +57,7 @@ class Multivariate_spectral_te(Network_analysis):
         self.perm_type = options.get('perm_type', 'random')
         self.alpha = options.get('alpha_spec', 0.05)
         self.tail = options.get('tail', 'two')
-        self.cmi_opts = options
+        super().__init__(options)
 
     def analyse_network(self, res_network, data, targets='all', sources='all'):
         """Find multivariate spectral transfer entropy between all nodes.
@@ -171,14 +172,16 @@ class Multivariate_spectral_te(Network_analysis):
             see documentation of class method 'analyse_single_target'.
 
             Args:
-            res_network: dict
+            res_target: dict
                 results from multivariate network inference, e.g., using TE
             data : Data instance
                 raw data from which the network was inferred
-            sources : list of int | int | 'all' [optional]
-                single index or list of indices of source processes
-                (default='all'), if 'all', all possible sources for the given
-                target are tested
+            scale : int
+                scale to be tested (1-indexed)
+            sources : list of int | 'all' [optional]
+                list of source indices to be tested for the target, if 'all'
+                all identified sources in res_target will be tested 
+                (default='all')
 
         Returns:
             dict
@@ -190,13 +193,16 @@ class Multivariate_spectral_te(Network_analysis):
                 and significance); NOTE that all variables are listed as tuples
                 (process, lag wrt. current value)
         """
-        N = data.n_samples
-        repl = data.n_replications
+        n_samples = data.n_samples
+        n_repl = data.n_replications
+        current_value = res_target['current_value']  # use current value from previous multivar. TE analysis
 
-        max_scale = int(np.round(np.log2(N)))
+        max_scale = int(np.round(np.log2(n_samples)))
         assert (scale <= max_scale), (
             'scale ({0}) must be smaller or equal to max_scale'
             ' ({1}).'.format(scale, max_scale))
+        if VERBOSE:
+            print('Max. scale is {0}'.format(max_scale))
 
         # wavelet used for modwt
         mother_wavelet = 'db16'
@@ -204,11 +210,11 @@ class Multivariate_spectral_te(Network_analysis):
         # Convert lags in the results structure to absolute indices
         idx_list_sources = self._lag_to_idx(
                     lag_list=res_target['selected_vars_sources'],
-                    current_value_sample=res_target['current_value'][1])
+                    current_value_sample=current_value[1])
 
         conditioning_set = self._lag_to_idx(
             lag_list=res_target['selected_vars_full'],
-            current_value_sample=res_target['current_value'][1])
+            current_value_sample=current_value[1])
 
         # idx_list_sources[(0,1),(0,2),(1,1),(1,2),(1,3)]
         # unique_sources=np.unique([x[0] for x in idx_list_sources])
@@ -217,13 +223,16 @@ class Multivariate_spectral_te(Network_analysis):
         significance = []
         te_surrogate = [[] for i in range(len(idx_list_sources))]
         surrogate = [[] for i in range(len(idx_list_sources))]
+        cur_val_realisations = data.get_realisations(current_value,
+                                                     [current_value])[0]
         # Main algorithm.
         count = 0
-        for process in idx_list_sources:
-            series = process[0]
-            print('analysing source ({0}) and variable ({1}).'.format(
-                                                                series,
-                                                                process[1]))
+        for source in idx_list_sources:
+            process = source[0]            
+            print('testing {0} from source set {1}'.format(
+                    self._idx_to_lag([source], current_value[1])[0],
+                    self._idx_to_lag(idx_list_sources, current_value[1])[0]), 
+                  end='')
             """
             Modwt coefficients at level j are associated to the same nominal
             frequency band |f|=[1/2.^j+1,1/2.^j]
@@ -239,20 +248,24 @@ class Multivariate_spectral_te(Network_analysis):
             at scale 7
              ([1/2.^7,1/2.^6])*1000= [3.9 Hz 7.81 Hz]   # theta band
             """
-            w_storage_d = []
-            data_slice = data._get_data_slice(series)
+            # w_storage_d = []
+            storage1_d = np.asarray(np.zeros((max_scale + 1, 
+                                              n_samples, 
+                                              n_repl)))
+            data_slice = data._get_data_slice(process)[0]
 
-            for rep in range(0, repl):
+            for rep in range(0, n_repl):
                 """
                 w_transform contains  wavelet coefficients.
                 """
 
-                w_transform = modwt.Modwt(data_slice[0][rep, :],
+                w_transform = modwt.Modwt(data_slice[:, rep],
                                           mother_wavelet,
                                           max_scale)
-                w_storage_d.append(w_transform)
+                # w_storage_d.append(w_transform)
+                storage1_d[:, :, rep] = w_transform
 
-            storage1_d = np.asarray(np.zeros((max_scale + 1, N, repl)))
+            
             '''
             from 1 to max_scale = detailed wavelet coefficient (the ones we
             shuffle) last index contain average coefficient, we keep this only
@@ -260,8 +273,8 @@ class Multivariate_spectral_te(Network_analysis):
             detailed coeff + one average
 
             '''
-            for i in range(0, repl):
-                storage1_d[:, :, i] = np.asarray(w_storage_d[i][:, :])
+            # for i in range(0, n_repl):
+            #     storage1_d[:, :, i] = np.asarray(w_storage_d[i][:, :])
 
             # plt.figure()
 
@@ -270,70 +283,99 @@ class Multivariate_spectral_te(Network_analysis):
             #   plt.subplot(n_level,1,i)
             #   plt.plot(storage1_d[i-1,:])
 
-            #   plt.xlabel('N')
+            #   plt.xlabel('n_samples')
             # plt.show()
             # plt.suptitle('wavelet coefficients at each scale $w_{j}$ '
             #              'produced by the MODWT')
 
-            # Store wavelet coeff as 3d object, all replication for a given
-            # source.
+            # Store wavelet coeff as 3d object for all replication of a given 
+            # source: processes represent scales, samples represent coeffs.
             wav_stored = Data(storage1_d, dim_order='psr', normalise=False)
-
-            shuff_rep = stats._generate_spectral_surrogates(
-                                                    wav_stored,
-                                                    scale-1,
-                                                    self.n_permutations,
-                                                    perm_opts=self.perm_type)
+            # Create surrogates by shuffling coefficients in given scale.
+            spectral_surr = stats._get_spectral_surrogates(
+                                                       wav_stored,
+                                                       scale - 1,
+                                                       self.n_permutations,
+                                                       perm_opts=self.options)
             # number replication*n_samples*n_permutation
+            
+            # Get the conditioning set for current source to be tested and its
+            # realisations (can be reused over permutations).
+            cur_cond_set = cp.copy(conditioning_set)
+            cur_cond_set.pop(cur_cond_set.index(source))
+            cur_cond_set_realisations = data.get_realisations(
+                                                        current_value,
+                                                        cur_cond_set)[0]
+            #conditioning_set_list = conditioning_set.pop(
+            #                                conditioning_set.index(source))  # this is outside loop because at each permutation it tries to remove the same source            
+            # Get distribution of surrogate TE values.            
             te_surr = np.zeros(self.n_permutations)
-            conditioning_set_list = conditioning_set.pop(
-                                            conditioning_set.index(process))  # this is outside loop because at each permutation it tries to remove the same process
             surrog = []
             for perm in range(0, self.n_permutations):
-                print('current permutation ({0}).'.format(perm))
-                wav_stored._data[scale-1, :, :] = shuff_rep[:, :, perm].T
-                reconstructed = np.empty((repl, N))
-                surrog.append(reconstructed)
-                # original = np.empty((repl, N))
-                for inv in range(0, repl):
+                if VERBOSE:
+                    print('permutation: {0} of {1}.'.format(
+                                                        perm, 
+                                                        self.n_permutations))
+                # Replace coefficients of scale to be tested by shuffled 
+                # coefficients to destroy influence of this freq. band.
+                wav_stored._data[scale - 1, :, :] = spectral_surr[:, :, perm]
+                reconstructed = np.empty((n_repl, n_samples))                
+                # original = np.empty((n_repl, n_samples))
+                
+                # Reconstruct the signal from all scales, with shuffled 
+                # coefficients for the scale to be tested.
+                for inv in range(0, n_repl):
                     merged_coeff = wav_stored._data[:, :, inv]
                     # apply inverse modwt transform to reconstruct it
                     reconstructed[inv, :] = modwt.Imodwt(merged_coeff,
                                                          mother_wavelet)
                     # original[inv, :] = pywt.iswt(w_transform, mother_wavelet)
-
+                surrog.append(reconstructed)  # for debugging
+                
+                # Create surrogate data object and add the reconstructed
+                # shuffled time series.
                 # Check error of reconstruction with original coeff with
-                # L-infinty norm.
-                data_surr = Data(normalise=False)
+                # L-infinty norm.                
                 d_temp = cp.copy(data.data)
-                transp = reconstructed.T
+                # transp = reconstructed.T
                 # transp = original.T
-                resp_const = np.reshape(transp, (1, N, repl))
-                d_temp[series, :, :] = resp_const
-                data_surr.set_data(d_temp, 'psr')
-                self.current_value = res_target['current_value']
-                cur_val_realisations = data_surr.get_realisations(
-                                                    self.current_value,
-                                                    [self.current_value])
+                # resp_const = np.reshape(transp, (1, n_samples, n_repl))
+                # d_temp[series, :, :] = resp_const
+                d_temp[process, :, :] = reconstructed.T
+                data_surr = Data(d_temp, 'psr', normalise=False)  # TODO make the data output optional      
+                #self.current_value = res_target['current_value']
+                # Get the realisations of the current source from the surrogate
+                # data (with the shuffled coefficient)
+#                cur_val_realisations = data_surr.get_realisations(
+#                                                    self.current_value,
+#                                                    [self.current_value])
+#                cur_source_realisations = data_surr.get_realisations(
+#                                                    self.current_value,
+#                                                    [process])
+#                conditioning_set_realisations = data_surr.get_realisations(
+#                                                    self.current_value,
+#                                                    [conditioning_set_list])
+                
+                # TODO the following can be parallelized
+                # Compute TE between shuffled source and current_value 
+                # conditional on the remaining set. Get the current source's
+                # realisations from the surrogate data object, get realisations
+                # of all other variables from the original data object.
                 cur_source_realisations = data_surr.get_realisations(
-                                                    self.current_value,
-                                                    [process])
-                conditioning_set_realisations = data_surr.get_realisations(
-                                                    self.current_value,
-                                                    [conditioning_set_list])
-                # Compute TE between shuffled (s) and target conditional on the
-                # remaining set.
-
+                                                    current_value,
+                                                    [source])[0]                
                 te_surr[perm] = self._cmi_calculator.estimate(
-                                var1=cur_val_realisations[0],
-                                var2=cur_source_realisations[0],
-                                conditional=conditioning_set_realisations[0],
-                                opts=self.cmi_opts)
+                                        var1=cur_val_realisations,
+                                        var2=cur_source_realisations,
+                                        conditional=cur_cond_set_realisations,
+                                        opts=self.options)
 
+            # Calculate p-value for original TE against spectral surrogates.
             te_original = res_target['selected_sources_te'][count]
-
-            [sign, pval] = stats._find_pvalue(te_original, te_surr, alpha=0.05,
-                                              tail='one_smaller')
+            [sign, pval] = stats._find_pvalue(statistic=te_original, 
+                                              distribution=te_surr, 
+                                              alpha=self.alpha,
+                                              tail='one')
 
             te_surrogate[count].append(te_surr)
             surrogate[count].append(surrog)
