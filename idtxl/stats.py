@@ -190,7 +190,7 @@ def omnibus_test(analysis_setup, data, opts=None): # TODO we don't need the opts
                                 current_value=analysis_setup.current_value,
                                 idx_list=analysis_setup.selected_vars_sources,
                                 n_perm=n_permutations,
-                                perm_opts=analysis_setup.options)                                      
+                                perm_opts=analysis_setup.options)
     surr_distribution = analysis_setup._cmi_calculator.estimate_mult(
                             n_chunks=n_permutations,
                             options=analysis_setup.options,
@@ -411,7 +411,7 @@ def min_statistic(analysis_setup, data, candidate_set, te_min_candidate,
 
 
 def mi_against_surrogates(analysis_setup, data):
-    """Test estimaed mutual information for significance against surrogate data.
+    """Test estimated mutual information for significance against surrogate data.
 
     Shuffle realisations of the current value (point to be predicted) and re-
     calculate mutual information (MI) for shuffled data. The actual estimated
@@ -419,7 +419,7 @@ def mi_against_surrogates(analysis_setup, data):
     data.
 
     Args:
-        analysis_setup : Multivariate_te instance
+        analysis_setup : Active_information_storage instance
             information on the current analysis, should have an Attribute
             'options', a dict with fields
 
@@ -962,14 +962,14 @@ def _get_surrogates(data, current_value, idx_list, n_perm,
 def _get_spectral_surrogates(data, scale, n_perm, perm_opts=None):
     """Return surrogate data for statistical testing of spectral TE.
 
-    Calls surrogate generation methods of the data instance for testing of 
-    spectral transfer entropy (TE). The method for surrogate generation depends 
-    on whether sufficient replications of the data exists. If the number of 
-    replications is high enough (reps! > n_permutations), surrogates are 
-    created by shuffling data over replications (while keeping the temporal 
-    order of samples intact). If the number of replications is too low, samples 
+    Calls surrogate generation methods of the data instance for testing of
+    spectral transfer entropy (TE). The method for surrogate generation depends
+    on whether sufficient replications of the data exists. If the number of
+    replications is high enough (reps! > n_permutations), surrogates are
+    created by shuffling data over replications (while keeping the temporal
+    order of samples intact). If the number of replications is too low, samples
     are shuffled over time (while keeping the order of replications intact).
-    The latter method can be forced by setting 'permute_in_time' to True in 
+    The latter method can be forced by setting 'permute_in_time' to True in
     'perm_opts'.
 
     Args:
@@ -995,17 +995,17 @@ def _get_spectral_surrogates(data, scale, n_perm, perm_opts=None):
     # Allocate memory for surrogates
     surrogates = np.empty((data.n_samples, data.n_replications,
                            n_perm)).astype(data.data_type)
-                           
+
     # Check if the user requested to permute samples in time and not over
     # replications (default)
-    permute_in_time = perm_opts.get('permute_in_time', False)                           
+    permute_in_time = perm_opts.get('permute_in_time', False)
 
     # Generate surrogates by permuting over replications if possible (no.
     # replications needs to be sufficient); else permute samples over time.
-    if _sufficient_replications(data, n_perm)  and not permute_in_time:  
+    if _sufficient_replications(data, n_perm)  and not permute_in_time:
         for perm in range(n_perm):  # permute replications
             surrogates[:, :, perm] = data.slice_permute_replications(scale)[0]
-    else:  
+    else:
         for perm in range(n_perm):  # permute samples
             surrogates[:, :, perm] = data.slice_permute_samples(scale,
                                                                 perm_opts)[0]
