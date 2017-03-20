@@ -457,7 +457,7 @@ class Multivariate_te(Network_inference):
                 break
 
     def _test_final_conditional(self, data):  # TODO test this!
-        """Perform statistical test on the final conditional set."""
+        """Perform omnibus test on the final conditional set."""
         if not self.selected_vars_sources:
             print('---------------------------- no sources found')
             return
