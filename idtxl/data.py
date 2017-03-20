@@ -60,11 +60,14 @@ class Data():
             number of samples in time
         normalise : bool
             if true, all data gets z-standardised per process
-
+        _verbose : bool
+            enable console output
     """
 
-    def __init__(self, data=None, dim_order='psr', normalise=True):
+    def __init__(self, data=None, dim_order='psr', normalise=True,
+                 verbose=True):
         self.normalise = normalise
+        self._verbose = verbose
         if data is not None:
             self.set_data(data, dim_order)
 
@@ -121,7 +124,8 @@ class Data():
 
     @data.deleter
     def data(self):
-        print('overwriting existing data')
+        if self._verbose:
+            print('overwriting existing data')
         del(self._data)
 
     def set_data(self, data, dim_order):
@@ -147,9 +151,10 @@ class Data():
         # set data.
         data_ordered = self._reorder_data(data, dim_order)
         self._set_data_size(data_ordered)
-        print('Adding data with properties: {0} processes, {1} samples, {2} '
-              'replications'.format(self.n_processes, self.n_samples,
-                                    self.n_replications))
+        if self._verbose:
+            print('Adding data with properties: {0} processes, {1} samples, '
+                  '{2} replications'.format(self.n_processes, self.n_samples,
+                                            self.n_replications))
         try:
             delattr(self, 'data')
         except AttributeError:
