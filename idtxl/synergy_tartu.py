@@ -579,7 +579,7 @@ class Compute_UI:
                     self.lambda_vars[x, y] = self.model.addVar(
                         name='lambda(%s,%s)' % (x, y))
             for x in self.cui.X:
-                for z in self.cui.Y:
+                for z in self.cui.Z:
                     self.mu_vars[x, z] = self.model.addVar(
                         name='mu(%s,%s)' % (x, z))
             self.model.update()
@@ -676,7 +676,7 @@ class Compute_UI:
             for y in self.Y:
                 lambda_vars[x, y] = model.addVar(name='lambda(%s,%s)' % (x, y))
         for x in self.X:
-            for z in self.Y:
+            for z in self.Z:
                 mu_vars[x, z] = model.addVar(name='mu(%s,%s)' % (x, z))
         model.update()
 
@@ -804,7 +804,7 @@ class Compute_UI:
             for y in self.Y:
                 lambda_vars[x, y] = model.addVar(name='lambda(%s,%s)' % (x, y))
         for x in self.X:
-            for z in self.Y:
+            for z in self.Z:
                 mu_vars[x, z] = model.addVar(name='mu(%s,%s)' % (x, z))
         model.update()
 
