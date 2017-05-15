@@ -23,6 +23,11 @@
 ######################
 *.stats
 
+# Coverage           #
+######################
+*.coverage
+test/htmlcov
+
 # TeX aux files      # 
 ######################
 *.aux
