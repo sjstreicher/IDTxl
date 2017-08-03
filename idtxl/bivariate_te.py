@@ -106,20 +106,10 @@ class BivariateTE(NetworkInference):
     # TODO right now 'options' holds all optional params (stats AND estimator).
     # We could split this up by adding the stats options to the analyse_*
     # methods?
-    def __init__(self, max_lag_sources, min_lag_sources, options,
-                 max_lag_target=None, tau_sources=1, tau_target=1):
-        # Set estimator in the child class for network inference because the
-        # estimated quantity may be different from CMI in other inference
-        # algorithms. (Everything else can be done in the parent class.)
-        try:
-            EstimatorClass = find_estimator(options['cmi_estimator'])
-        except KeyError:
-            raise KeyError('Please provide an estimator class or name!')
-        self._cmi_estimator = EstimatorClass(options)
-        super().__init__(max_lag_sources, min_lag_sources, options,
-                         max_lag_target, tau_sources, tau_target)
+    def __init__(self):
+        super().__init__()
 
-    def analyse_network(self, data, targets='all', sources='all'):
+    def analyse_network(self, options, data, targets='all', sources='all'):
         """Find bivariate transfer entropy between all nodes in the network.
 
         Estimate bivariate transfer entropy (TE) between all nodes in the
@@ -190,16 +180,14 @@ class BivariateTE(NetworkInference):
         for t in range(len(targets)):
             if VERBOSE:
                 print('####### analysing target {0} of {1}'.format(t, targets))
-            r = self.analyse_single_target(data, targets[t], sources[t])
+            r = self.analyse_single_target(options, data,
+                                           targets[t], sources[t])
             r['target'] = targets[t]
             r['sources'] = sources[t]
             results[targets[t]] = r
-
-        if self.options['fdr_correction']:
-            results['fdr'] = stats.network_fdr(self, results)
         return results
 
-    def analyse_single_target(self, data, target, sources='all'):
+    def analyse_single_target(self, options, data, target, sources='all'):
         """Find bivariate transfer entropy between sources and a target.
 
         Find bivariate transfer entropy (TE) between all potential source
@@ -261,7 +249,7 @@ class BivariateTE(NetworkInference):
                 pvalues for each significant source candidate
         """
         # Check input and clean up object if it was used before.
-        self._initialise(data, sources, target)
+        self._initialise(options, data, sources, target)
 
         # Main algorithm.
         print('\n---------------------------- (1) include target candidates')
@@ -281,11 +269,6 @@ class BivariateTE(NetworkInference):
         results = {
             'target': self.target,
             'sources_tested': self.source_set,
-            'max_lag_sources': self.max_lag_sources,
-            'min_lag_sources': self.min_lag_sources,
-            'max_lag_target': self.max_lag_target,
-            'tau_sources': self.tau_sources,
-            'tau_target': self.tau_target,
             'options': self.options,
             'current_value': self.current_value,
             'selected_vars_full': self._idx_to_lag(self.selected_vars_full),
@@ -324,9 +307,10 @@ class BivariateTE(NetworkInference):
         """
         # Define candidate set and get realisations.
         procs = self.source_set
-        samples = np.arange(self.current_value[1] - self.min_lag_sources,
-                            self.current_value[1] - self.max_lag_sources,
-                            -self.tau_sources)
+        samples = np.arange(
+                self.current_value[1] - self.options['min_lag_sources'],
+                self.current_value[1] - self.options['max_lag_sources'],
+                -self.options['tau_sources'])
         candidate_set = self._define_candidates(procs, samples)
         self._append_selected_vars(
                 candidate_set,

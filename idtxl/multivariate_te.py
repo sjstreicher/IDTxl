@@ -13,7 +13,6 @@ Note:
 import numpy as np
 from . import stats
 from .network_inference import NetworkInference
-from .estimator import find_estimator
 
 VERBOSE = True
 
@@ -106,20 +105,10 @@ class MultivariateTE(NetworkInference):
     # TODO right now 'options' holds all optional params (stats AND estimator).
     # We could split this up by adding the stats options to the analyse_*
     # methods?
-    def __init__(self, max_lag_sources, min_lag_sources, options,
-                 max_lag_target=None, tau_sources=1, tau_target=1):
-        # Set estimator in the child class for network inference because the
-        # estimated quantity may be different from CMI in other inference
-        # algorithms. (Everything else can be done in the parent class.)
-        try:
-            EstimatorClass = find_estimator(options['cmi_estimator'])
-        except KeyError:
-            raise KeyError('Please provide an estimator class or name!')
-        self._cmi_estimator = EstimatorClass(options)
-        super().__init__(max_lag_sources, min_lag_sources, options,
-                         max_lag_target, tau_sources, tau_target)
+    def __init__(self):
+        super().__init__()
 
-    def analyse_network(self, data, targets='all', sources='all'):
+    def analyse_network(self, options, data, targets='all', sources='all'):
         """Find multivariate transfer entropy between all nodes in the network.
 
         Estimate multivariate transfer entropy (TE) between all nodes in the
@@ -192,14 +181,13 @@ class MultivariateTE(NetworkInference):
             if VERBOSE:
                 print('####### analysing target with index {0} from list {1}'
                       .format(t, targets))
-            results[targets[t]] = self.analyse_single_target(data,
+            results[targets[t]] = self.analyse_single_target(options,
+                                                             data,
                                                              targets[t],
                                                              sources[t])
-        if self.options['fdr_correction']:
-            results['fdr'] = stats.network_fdr(self, results)
         return results
 
-    def analyse_single_target(self, data, target, sources='all'):
+    def analyse_single_target(self, options, data, target, sources='all'):
         """Find multivariate transfer entropy between sources and a target.
 
         Find multivariate transfer entropy (TE) between all source processes
@@ -264,7 +252,7 @@ class MultivariateTE(NetworkInference):
                 (process, lag wrt. current value)
         """
         # Check input and clean up object if it was used before.
-        self._initialise(data, sources, target)
+        self._initialise(options, data, sources, target)
 
         # Main algorithm.
         print('\n---------------------------- (1) include target candidates')
@@ -286,11 +274,6 @@ class MultivariateTE(NetworkInference):
         results = {
             'target': self.target,
             'sources_tested': self.source_set,
-            'max_lag_sources': self.max_lag_sources,
-            'min_lag_sources': self.min_lag_sources,
-            'max_lag_target': self.max_lag_target,
-            'tau_sources': self.tau_sources,
-            'tau_target': self.tau_target,
             'options': self.options,
             'current_value': self.current_value,
             'selected_vars_full': self._idx_to_lag(self.selected_vars_full),
