@@ -20,64 +20,70 @@ def test_network_comparison_use_cases():
     data = Data()
     data.generate_mute_data(100, 5)
 
-    path = os.path.join(os.path.dirname(__file__), 'data/')
-    res_0 = pickle.load(open(path + 'mute_results_0.p', 'rb'))
-    res_1 = pickle.load(open(path + 'mute_results_1.p', 'rb'))
-    res_2 = pickle.load(open(path + 'mute_results_2.p', 'rb'))
-    res_3 = pickle.load(open(path + 'mute_results_3.p', 'rb'))
-    res_4 = pickle.load(open(path + 'mute_results_4.p', 'rb'))
+    path = os.path.join(os.path.dirname(__file__), "data/")
+    res_0 = pickle.load(open(path + "mute_results_0.p", "rb"))
+    res_1 = pickle.load(open(path + "mute_results_1.p", "rb"))
+    res_2 = pickle.load(open(path + "mute_results_2.p", "rb"))
+    res_3 = pickle.load(open(path + "mute_results_3.p", "rb"))
+    res_4 = pickle.load(open(path + "mute_results_4.p", "rb"))
 
     # comparison settings
     comp_settings = {
-            'cmi_estimator': 'JidtKraskovCMI',
-            'n_perm_max_stat': 50,
-            'n_perm_min_stat': 50,
-            'n_perm_omnibus': 200,
-            'n_perm_max_seq': 50,
-            'alpha_comp': 0.26,
-            'n_perm_comp': 4,
-            'tail': 'two'
-            }
+        "cmi_estimator": "JidtKraskovCMI",
+        "n_perm_max_stat": 50,
+        "n_perm_min_stat": 50,
+        "n_perm_omnibus": 200,
+        "n_perm_max_seq": 50,
+        "alpha_comp": 0.26,
+        "n_perm_comp": 4,
+        "tail": "two",
+    }
 
     comp = NetworkComparison()
 
-    print('\n\nTEST 0 - independent within')
-    comp_settings['stats_type'] = 'independent'
+    print("\n\nTEST 0 - independent within")
+    comp_settings["stats_type"] = "independent"
     comp.compare_within(comp_settings, res_0, res_1, data, data)
 
-    print('\n\nTEST 1 - dependent within')
-    comp_settings['stats_type'] = 'dependent'
+    print("\n\nTEST 1 - dependent within")
+    comp_settings["stats_type"] = "dependent"
     comp.compare_within(comp_settings, res_0, res_1, data, data)
 
-    print('\n\nTEST 2 - independent between')
-    comp_settings['stats_type'] = 'independent'
-    comp.compare_between(comp_settings,
-                         network_set_a=np.array((res_0, res_1)),
-                         network_set_b=np.array((res_2, res_3)),
-                         data_set_a=np.array((data, data)),
-                         data_set_b=np.array((data, data)))
+    print("\n\nTEST 2 - independent between")
+    comp_settings["stats_type"] = "independent"
+    comp.compare_between(
+        comp_settings,
+        network_set_a=np.array((res_0, res_1)),
+        network_set_b=np.array((res_2, res_3)),
+        data_set_a=np.array((data, data)),
+        data_set_b=np.array((data, data)),
+    )
 
-    print('\n\nTEST 3 - dependent between')
-    comp_settings['stats_type'] = 'dependent'
-    comp.compare_between(comp_settings,
-                         network_set_a=np.array((res_0, res_1)),
-                         network_set_b=np.array((res_2, res_3)),
-                         data_set_a=np.array((data, data)),
-                         data_set_b=np.array((data, data)))
+    print("\n\nTEST 3 - dependent between")
+    comp_settings["stats_type"] = "dependent"
+    comp.compare_between(
+        comp_settings,
+        network_set_a=np.array((res_0, res_1)),
+        network_set_b=np.array((res_2, res_3)),
+        data_set_a=np.array((data, data)),
+        data_set_b=np.array((data, data)),
+    )
 
-    print('\n\nTEST 4 - independent within unbalanced')
-    comp_settings['stats_type'] = 'independent'
+    print("\n\nTEST 4 - independent within unbalanced")
+    comp_settings["stats_type"] = "independent"
     comp = NetworkComparison()
     comp.compare_within(comp_settings, res_0, res_1, data, data)
 
-    print('\n\nTEST 5 - independent between unbalanced')
-    comp_settings['stats_type'] = 'independent'
+    print("\n\nTEST 5 - independent between unbalanced")
+    comp_settings["stats_type"] = "independent"
     comp = NetworkComparison()
-    comp.compare_between(comp_settings,
-                         network_set_a=np.array((res_0, res_1)),
-                         network_set_b=np.array((res_2, res_3, res_4)),
-                         data_set_a=np.array((data, data)),
-                         data_set_b=np.array((data, data, data)))
+    comp.compare_between(
+        comp_settings,
+        network_set_a=np.array((res_0, res_1)),
+        network_set_b=np.array((res_2, res_3, res_4)),
+        data_set_a=np.array((data, data)),
+        data_set_b=np.array((data, data, data)),
+    )
 
 
 @jpype_missing
@@ -87,26 +93,26 @@ def test_assertions():
     data.generate_mute_data(100, 5)
 
     # Load previously generated example data
-    path = os.path.join(os.path.dirname(__file__), 'data/')
-    res_0 = pickle.load(open(path + 'mute_results_0.p', 'rb'))
-    res_1 = pickle.load(open(path + 'mute_results_1.p', 'rb'))
-    res_2 = pickle.load(open(path + 'mute_results_2.p', 'rb'))
-    res_3 = pickle.load(open(path + 'mute_results_3.p', 'rb'))
+    path = os.path.join(os.path.dirname(__file__), "data/")
+    res_0 = pickle.load(open(path + "mute_results_0.p", "rb"))
+    res_1 = pickle.load(open(path + "mute_results_1.p", "rb"))
+    res_2 = pickle.load(open(path + "mute_results_2.p", "rb"))
+    res_3 = pickle.load(open(path + "mute_results_3.p", "rb"))
 
     # comparison settings
     comp_settings = {
-            'cmi_estimator': 'JidtKraskovCMI',
-            'n_perm_max_stat': 50,
-            'n_perm_min_stat': 50,
-            'n_perm_omnibus': 200,
-            'n_perm_max_seq': 50,
-            'tail': 'two'
-            }
+        "cmi_estimator": "JidtKraskovCMI",
+        "n_perm_max_stat": 50,
+        "n_perm_min_stat": 50,
+        "n_perm_omnibus": 200,
+        "n_perm_max_seq": 50,
+        "tail": "two",
+    }
 
     # no. permutations insufficient for requested alpha
-    comp_settings['n_perm_comp'] = 6
-    comp_settings['alpha_comp'] = 0.001
-    comp_settings['stats_type'] = 'independent'
+    comp_settings["n_perm_comp"] = 6
+    comp_settings["alpha_comp"] = 0.001
+    comp_settings["stats_type"] = "independent"
     comp = NetworkComparison()
     with pytest.raises(RuntimeError):
         comp._initialise(comp_settings)
@@ -114,9 +120,9 @@ def test_assertions():
     # data sets have unequal no. replications
     dat2 = Data()
     dat2.generate_mute_data(100, 3)
-    comp_settings['stats_type'] = 'dependent'
-    comp_settings['alpha_comp'] = 0.05
-    comp_settings['n_perm_comp'] = 1000
+    comp_settings["stats_type"] = "dependent"
+    comp_settings["alpha_comp"] = 0.05
+    comp_settings["n_perm_comp"] = 1000
     comp = NetworkComparison()
     with pytest.raises(AssertionError):
         comp.compare_within(comp_settings, res_0, res_1, data, dat2)
@@ -124,42 +130,46 @@ def test_assertions():
     # data sets have unequal no. realisations
     dat2 = Data()
     dat2.generate_mute_data(80, 5)
-    comp_settings['stats_type'] = 'dependent'
-    comp_settings['alpha_comp'] = 0.05
-    comp_settings['n_perm_comp'] = 21
+    comp_settings["stats_type"] = "dependent"
+    comp_settings["alpha_comp"] = 0.05
+    comp_settings["n_perm_comp"] = 21
     comp = NetworkComparison()
     with pytest.raises(RuntimeError):
         comp.compare_within(comp_settings, res_0, res_1, data, dat2)
 
     # no. replications/subjects too small for dependent-samples test
-    comp_settings['stats_type'] = 'dependent'
-    comp_settings['n_perm_comp'] = 1000
+    comp_settings["stats_type"] = "dependent"
+    comp_settings["n_perm_comp"] = 1000
     comp = NetworkComparison()
-    with pytest.raises(RuntimeError):   # between
-        comp.compare_between(comp_settings,
-                             network_set_a=np.array((res_0, res_1)),
-                             network_set_b=np.array((res_2, res_3)),
-                             data_set_a=np.array((data, data)),
-                             data_set_b=np.array((data, data)))
-    with pytest.raises(RuntimeError):   # within
+    with pytest.raises(RuntimeError):  # between
+        comp.compare_between(
+            comp_settings,
+            network_set_a=np.array((res_0, res_1)),
+            network_set_b=np.array((res_2, res_3)),
+            data_set_a=np.array((data, data)),
+            data_set_b=np.array((data, data)),
+        )
+    with pytest.raises(RuntimeError):  # within
         comp.compare_within(comp_settings, res_0, res_1, dat2, dat2)
 
     # no. replications/subjects too small for independent-samples test
-    comp_settings['stats_type'] = 'independent'
+    comp_settings["stats_type"] = "independent"
     comp = NetworkComparison()
-    with pytest.raises(RuntimeError):   # between
-        comp.compare_between(comp_settings,
-                             network_set_a=np.array((res_0, res_1)),
-                             network_set_b=np.array((res_2, res_3)),
-                             data_set_a=np.array((data, data)),
-                             data_set_b=np.array((data, data)))
-    with pytest.raises(RuntimeError):   # within
+    with pytest.raises(RuntimeError):  # between
+        comp.compare_between(
+            comp_settings,
+            network_set_a=np.array((res_0, res_1)),
+            network_set_b=np.array((res_2, res_3)),
+            data_set_a=np.array((data, data)),
+            data_set_b=np.array((data, data)),
+        )
+    with pytest.raises(RuntimeError):  # within
         comp.compare_within(comp_settings, res_0, res_1, dat2, dat2)
 
     # add target to network that is not in the data object
-    dat2 = Data(np.random.rand(2, 1000, 50), dim_order='psr')
-    comp_settings['alpha_comp'] = 0.05
-    comp_settings['n_perm_comp'] = 21
+    dat2 = Data(np.random.rand(2, 1000, 50), dim_order="psr")
+    comp_settings["alpha_comp"] = 0.05
+    comp_settings["n_perm_comp"] = 21
     comp = NetworkComparison()
     with pytest.raises(IndexError):
         comp.compare_within(comp_settings, res_0, res_2, dat2, dat2)
@@ -174,22 +184,22 @@ def test_create_union_network():
     dat2.generate_mute_data(100, 5)
 
     # Load previously generated example data
-    path = os.path.join(os.path.dirname(__file__), 'data/')
-    res_0 = pickle.load(open(path + 'mute_results_0.p', 'rb'))
-    res_1 = pickle.load(open(path + 'mute_results_1.p', 'rb'))
+    path = os.path.join(os.path.dirname(__file__), "data/")
+    res_0 = pickle.load(open(path + "mute_results_0.p", "rb"))
+    res_1 = pickle.load(open(path + "mute_results_1.p", "rb"))
 
     # comparison settings
     comp_settings = {
-            'cmi_estimator': 'JidtKraskovCMI',
-            'n_perm_max_stat': 50,
-            'n_perm_min_stat': 50,
-            'n_perm_omnibus': 200,
-            'n_perm_max_seq': 50,
-            'tail': 'two',
-            'n_perm_comp': 6,
-            'alpha_comp': 0.2,
-            'stats_type': 'independent'
-            }
+        "cmi_estimator": "JidtKraskovCMI",
+        "n_perm_max_stat": 50,
+        "n_perm_min_stat": 50,
+        "n_perm_omnibus": 200,
+        "n_perm_max_seq": 50,
+        "tail": "two",
+        "n_perm_comp": 6,
+        "alpha_comp": 0.2,
+        "stats_type": "independent",
+    }
     comp = NetworkComparison()
     comp._initialise(comp_settings)
 
@@ -200,19 +210,22 @@ def test_create_union_network():
 
     comp._create_union(res_0, res_1)
     ref_targets = np.array([0, 1, 2])
-    assert (comp.union.targets_analysed == ref_targets).all(), (
-        'Union does not include all targets.')
-    assert np.array([
-        True for i in ref_targets if i in comp.union.keys()]).all(), (
-            'Not all targets contained in union network.')
-    assert comp.union['max_lag'] == res_0._single_target[1].current_value[1], (
-        'The max. lag was not defined correctly.')
+    assert (
+        comp.union.targets_analysed == ref_targets
+    ).all(), "Union does not include all targets."
+    assert np.array(
+        [True for i in ref_targets if i in comp.union.keys()]
+    ).all(), "Not all targets contained in union network."
+    assert (
+        comp.union["max_lag"] == res_0._single_target[1].current_value[1]
+    ), "The max. lag was not defined correctly."
 
     src_union = comp._idx_to_lag(
-        comp.union._single_target[1]['selected_vars_sources'],
-        comp.union['max_lag'])
-    assert src_union == (src_1 + src_2), (
-        'Sources for target 1 were not combined correctly.')
+        comp.union._single_target[1]["selected_vars_sources"], comp.union["max_lag"]
+    )
+    assert src_union == (
+        src_1 + src_2
+    ), "Sources for target 1 were not combined correctly."
 
     # unequal current values in single networks
     res_0._single_target[1].current_value = (1, 7)  # the original is (1, 5)
@@ -224,20 +237,20 @@ def test_create_union_network():
 def test_get_permuted_replications():
     """Test if permutation of replications works."""
     # Load previously generated example data
-    path = os.path.join(os.path.dirname(__file__), 'data/')
-    res_0 = pickle.load(open(path + 'mute_results_0.p', 'rb'))
-    res_1 = pickle.load(open(path + 'mute_results_1.p', 'rb'))
+    path = os.path.join(os.path.dirname(__file__), "data/")
+    res_0 = pickle.load(open(path + "mute_results_0.p", "rb"))
+    res_1 = pickle.load(open(path + "mute_results_1.p", "rb"))
     comp_settings = {
-            'cmi_estimator': 'JidtKraskovCMI',
-            'n_perm_max_stat': 50,
-            'n_perm_min_stat': 50,
-            'n_perm_omnibus': 200,
-            'n_perm_max_seq': 50,
-            'tail': 'two',
-            'n_perm_comp': 6,
-            'alpha_comp': 0.2,
-            'stats_type': 'dependent'
-            }
+        "cmi_estimator": "JidtKraskovCMI",
+        "n_perm_max_stat": 50,
+        "n_perm_min_stat": 50,
+        "n_perm_omnibus": 200,
+        "n_perm_max_seq": 50,
+        "tail": "two",
+        "n_perm_comp": 6,
+        "alpha_comp": 0.2,
+        "stats_type": "dependent",
+    }
     comp = NetworkComparison()
     comp._initialise(comp_settings)
     comp._create_union(res_0, res_1)
@@ -246,37 +259,34 @@ def test_get_permuted_replications():
     # zeros and ones, check if realisations get swapped correctly.
     dat1 = Data()
     dat1.normalise = False
-    dat1.set_data(np.zeros((5, 100, 5)), 'psr')
+    dat1.set_data(np.zeros((5, 100, 5)), "psr")
     dat2 = Data()
     dat2.normalise = False
-    dat2.set_data(np.ones((5, 100, 5)), 'psr')
-    [cond_a_perm,
-     cv_a_perm,
-     cond_b_perm,
-     cv_b_perm] = comp._get_permuted_replications(data_a=dat1,
-                                                  data_b=dat2,
-                                                  target=1)
+    dat2.set_data(np.ones((5, 100, 5)), "psr")
+    [cond_a_perm, cv_a_perm, cond_b_perm, cv_b_perm] = comp._get_permuted_replications(
+        data_a=dat1, data_b=dat2, target=1
+    )
     n_vars = cond_a_perm.shape[1]
-    assert (np.sum(cond_a_perm + cond_b_perm, axis=1) == n_vars).all(), (
-                'Dependent samples permutation did not work correctly.')
-    assert np.logical_xor(cond_a_perm, cond_b_perm).all(), (
-                'Dependent samples permutation did not work correctly.')
+    assert (
+        np.sum(cond_a_perm + cond_b_perm, axis=1) == n_vars
+    ).all(), "Dependent samples permutation did not work correctly."
+    assert np.logical_xor(
+        cond_a_perm, cond_b_perm
+    ).all(), "Dependent samples permutation did not work correctly."
 
     # Check permutations for independent samples test: Check the sum over
     # realisations.
-    comp_settings['stats_type'] = 'independent'
+    comp_settings["stats_type"] = "independent"
     comp = NetworkComparison()
     comp._initialise(comp_settings)
     comp._create_union(res_0, res_1)
-    [cond_a_perm,
-     cv_a_perm,
-     cond_b_perm,
-     cv_b_perm] = comp._get_permuted_replications(data_a=dat1,
-                                                  data_b=dat2,
-                                                  target=1)
-    n_samples = n_vars * dat1.n_realisations((0, comp.union['max_lag']))
-    assert np.sum(cond_a_perm + cond_b_perm, axis=None) == n_samples, (
-                'Independent samples permutation did not work correctly.')
+    [cond_a_perm, cv_a_perm, cond_b_perm, cv_b_perm] = comp._get_permuted_replications(
+        data_a=dat1, data_b=dat2, target=1
+    )
+    n_samples = n_vars * dat1.n_realisations((0, comp.union["max_lag"]))
+    assert (
+        np.sum(cond_a_perm + cond_b_perm, axis=None) == n_samples
+    ), "Independent samples permutation did not work correctly."
 
     # test unequal number of replications
     dat2.generate_mute_data(100, 7)
@@ -291,36 +301,43 @@ def test_calculate_cmi_all_links():
     n = 1000
     cov = 0.4
     source = [rn.normalvariate(0, 1) for r in range(n)]  # correlated src
-    target = [0] + [sum(pair) for pair in zip(
-        [cov * y for y in source[0:n - 1]],
-        [(1 - cov) * y for y in
-            [rn.normalvariate(0, 1) for r in range(n - 1)]])]
-    data.set_data(np.vstack((source, target)), 'ps')
-    res_0 = np.load(os.path.join(os.path.dirname(__file__),
-                    'data/mute_results_0.p'))
+    target = [0] + [
+        sum(pair)
+        for pair in zip(
+            [cov * y for y in source[0 : n - 1]],
+            [(1 - cov) * y for y in [rn.normalvariate(0, 1) for r in range(n - 1)]],
+        )
+    ]
+    data.set_data(np.vstack((source, target)), "ps")
+    res_0 = np.load(os.path.join(os.path.dirname(__file__), "data/mute_results_0.p"))
     comp_settings = {
-        'cmi_estimator': 'JidtKraskovCMI',
-        'n_perm_max_stat': 50,
-        'n_perm_min_stat': 50,
-        'n_perm_omnibus': 200,
-        'n_perm_max_seq': 50,
-        'tail': 'two',
-        'n_perm_comp': 6,
-        'alpha_comp': 0.2,
-        'stats_type': 'dependent'
-        }
+        "cmi_estimator": "JidtKraskovCMI",
+        "n_perm_max_stat": 50,
+        "n_perm_min_stat": 50,
+        "n_perm_omnibus": 200,
+        "n_perm_max_seq": 50,
+        "tail": "two",
+        "n_perm_comp": 6,
+        "alpha_comp": 0.2,
+        "stats_type": "dependent",
+    }
     comp = NetworkComparison()
     comp._initialise(comp_settings)
     comp._create_union(res_0)
-    comp.union._single_target[1]['selected_vars_sources'] = [(0, 4)]
+    comp.union._single_target[1]["selected_vars_sources"] = [(0, 4)]
     cmi = comp._calculate_cmi_all_links(data)
-    corr_expected = cov / (1 * np.sqrt(cov**2 + (1-cov)**2))
+    corr_expected = cov / (1 * np.sqrt(cov ** 2 + (1 - cov) ** 2))
     expected_cmi = calculate_mi(corr_expected)
-    print('correlated Gaussians: TE result {0:.4f} bits; expected to be '
-          '{1:0.4f} bit for the copy'.format(cmi[1][0], expected_cmi))
+    print(
+        "correlated Gaussians: TE result {0:.4f} bits; expected to be "
+        "{1:0.4f} bit for the copy".format(cmi[1][0], expected_cmi)
+    )
     np.testing.assert_almost_equal(
-                   cmi[1][0], expected_cmi, decimal=1,
-                   err_msg='when calculating cmi for correlated Gaussians.')
+        cmi[1][0],
+        expected_cmi,
+        decimal=1,
+        err_msg="when calculating cmi for correlated Gaussians.",
+    )
 
 
 @jpype_missing
@@ -328,27 +345,27 @@ def test_calculate_mean():
     """Test if mean over CMI estimates is calculated correctly."""
     data = Data()
     data.generate_mute_data(100, 5)
-    res_0 = np.load(os.path.join(os.path.dirname(__file__),
-                    'data/mute_results_0.p'))
+    res_0 = np.load(os.path.join(os.path.dirname(__file__), "data/mute_results_0.p"))
     comp_settings = {
-        'cmi_estimator': 'JidtKraskovCMI',
-        'n_perm_max_stat': 50,
-        'n_perm_min_stat': 50,
-        'n_perm_omnibus': 200,
-        'n_perm_max_seq': 50,
-        'tail': 'two',
-        'n_perm_comp': 6,
-        'alpha_comp': 0.2,
-        'stats_type': 'dependent'
-        }
+        "cmi_estimator": "JidtKraskovCMI",
+        "n_perm_max_stat": 50,
+        "n_perm_min_stat": 50,
+        "n_perm_omnibus": 200,
+        "n_perm_max_seq": 50,
+        "tail": "two",
+        "n_perm_comp": 6,
+        "alpha_comp": 0.2,
+        "stats_type": "dependent",
+    }
     comp = NetworkComparison()
     comp._initialise(comp_settings)
     comp._create_union(res_0)
     cmi = comp._calculate_cmi_all_links(data)
     cmi_mean = comp._calculate_mean([cmi, cmi])
     for t in comp.union.targets_analysed:
-        assert (cmi_mean[t] == cmi[t]).all(), ('Error in mean of CMI for '
-                                               'target {0}'.format(t))
+        assert (
+            cmi_mean[t] == cmi[t]
+        ).all(), "Error in mean of CMI for " "target {0}".format(t)
 
 
 @jpype_missing
@@ -356,20 +373,20 @@ def test_p_value_union():
     """Test if the p-value is calculated correctly."""
     data = Data()
     data.generate_mute_data(100, 5)
-    path = os.path.join(os.path.dirname(__file__), 'data/')
-    res_0 = pickle.load(open(path + 'mute_results_0.p', 'rb'))
-    res_1 = pickle.load(open(path + 'mute_results_1.p', 'rb'))
+    path = os.path.join(os.path.dirname(__file__), "data/")
+    res_0 = pickle.load(open(path + "mute_results_0.p", "rb"))
+    res_1 = pickle.load(open(path + "mute_results_1.p", "rb"))
     comp_settings = {
-        'cmi_estimator': 'JidtKraskovCMI',
-        'n_perm_max_stat': 50,
-        'n_perm_min_stat': 50,
-        'n_perm_omnibus': 200,
-        'n_perm_max_seq': 50,
-        'n_perm_comp': 6,
-        'alpha_comp': 0.2,
-        'tail_comp': 'one_bigger',
-        'stats_type': 'independent'
-        }
+        "cmi_estimator": "JidtKraskovCMI",
+        "n_perm_max_stat": 50,
+        "n_perm_min_stat": 50,
+        "n_perm_omnibus": 200,
+        "n_perm_max_seq": 50,
+        "n_perm_comp": 6,
+        "alpha_comp": 0.2,
+        "tail_comp": "one_bigger",
+        "stats_type": "independent",
+    }
     comp = NetworkComparison()
     comp.compare_within(comp_settings, res_0, res_1, data, data)
 
@@ -384,25 +401,29 @@ def test_p_value_union():
     target = 1
     source = 0
 
-    comp.cmi_surr[target] = np.zeros((1, comp_settings['n_perm_comp']))
+    comp.cmi_surr[target] = np.zeros((1, comp_settings["n_perm_comp"]))
     comp.cmi_diff[target] = np.array([0.5])
     comp._p_value_union()
     p = comp.pvalue
     s = comp.significance
-    assert s[target][source], (
-        'The significance was not determined correctly: {0}'.format(s[target]))
-    assert p[target][source] == 1 / comp_settings['n_perm_comp'], (
-        'The p-value was not calculated correctly: {0}'.format(p[target]))
+    assert s[target][
+        source
+    ], "The significance was not determined correctly: {0}".format(s[target])
+    assert (
+        p[target][source] == 1 / comp_settings["n_perm_comp"]
+    ), "The p-value was not calculated correctly: {0}".format(p[target])
 
-    comp.cmi_surr[target] = np.ones((1, comp_settings['n_perm_comp']))
+    comp.cmi_surr[target] = np.ones((1, comp_settings["n_perm_comp"]))
     comp.cmi_diff[target] = np.array([0.5])
     comp._p_value_union()
     p = comp.pvalue
     s = comp.significance
-    assert not s[target][source], (
-        'The significance was not determined correctly: {0}'.format(s[target]))
-    assert p[target][source] == 1.0, (
-        'The p-value was not calculated correctly: {0}'.format(p[target]))
+    assert not s[target][
+        source
+    ], "The significance was not determined correctly: {0}".format(s[target])
+    assert (
+        p[target][source] == 1.0
+    ), "The p-value was not calculated correctly: {0}".format(p[target])
 
 
 def test_compare_links_within():
@@ -410,56 +431,54 @@ def test_compare_links_within():
     data = Data()
     data.generate_mute_data(100, 5)
 
-    path = os.path.join(os.path.dirname(__file__), 'data/')
-    res = pickle.load(open(path + 'mute_results_1.p', 'rb'))
+    path = os.path.join(os.path.dirname(__file__), "data/")
+    res = pickle.load(open(path + "mute_results_1.p", "rb"))
 
     # comparison settings
     comp_settings = {
-            'cmi_estimator': 'JidtKraskovCMI',
-            'n_perm_max_stat': 50,
-            'n_perm_min_stat': 50,
-            'n_perm_omnibus': 200,
-            'n_perm_max_seq': 50,
-            'alpha_comp': 0.26,
-            'n_perm_comp': 4,
-            'tail': 'two'
-            }
+        "cmi_estimator": "JidtKraskovCMI",
+        "n_perm_max_stat": 50,
+        "n_perm_min_stat": 50,
+        "n_perm_omnibus": 200,
+        "n_perm_max_seq": 50,
+        "alpha_comp": 0.26,
+        "n_perm_comp": 4,
+        "tail": "two",
+    }
 
     link_a = [0, 1]
     link_b = [0, 2]
 
     comp = NetworkComparison()
-    comp_settings['stats_type'] = 'independent'
-    res_indep = comp.compare_links_within(settings=comp_settings,
-                                          link_a=link_a,
-                                          link_b=link_b,
-                                          network=res,
-                                          data=data)
-    comp_settings['stats_type'] = 'dependent'
-    res_dep = comp.compare_links_within(settings=comp_settings,
-                                        link_a=[0, 1],
-                                        link_b=[0, 2],
-                                        network=res,
-                                        data=data)
+    comp_settings["stats_type"] = "independent"
+    res_indep = comp.compare_links_within(
+        settings=comp_settings, link_a=link_a, link_b=link_b, network=res, data=data
+    )
+    comp_settings["stats_type"] = "dependent"
+    res_dep = comp.compare_links_within(
+        settings=comp_settings, link_a=[0, 1], link_b=[0, 2], network=res, data=data
+    )
     for r in [res_indep, res_dep]:
-        assert (r.get_adjacency_matrix('diff_abs')[link_a[0], link_a[1]] ==
-                r.get_adjacency_matrix('diff_abs')[link_b[0], link_b[1]]), (
-                    'Absolute differences for link comparison not equal.')
-        assert (r.get_adjacency_matrix('comparison')[link_a[0], link_a[1]] ==
-                r.get_adjacency_matrix('comparison')[link_b[0], link_b[1]]), (
-                    'Comparison results for link comparison not equal.')
-        assert (r.get_adjacency_matrix('pvalue')[link_a[0], link_a[1]] ==
-                r.get_adjacency_matrix('pvalue')[link_b[0], link_b[1]]), (
-                    'P-value for link comparison not equal.')
-        assert (r.targets_analysed == [link_a[1], link_b[1]]).all(), (
-                'Analysed targets are not correct.')
+        assert (
+            r.get_adjacency_matrix("diff_abs")[link_a[0], link_a[1]]
+            == r.get_adjacency_matrix("diff_abs")[link_b[0], link_b[1]]
+        ), "Absolute differences for link comparison not equal."
+        assert (
+            r.get_adjacency_matrix("comparison")[link_a[0], link_a[1]]
+            == r.get_adjacency_matrix("comparison")[link_b[0], link_b[1]]
+        ), "Comparison results for link comparison not equal."
+        assert (
+            r.get_adjacency_matrix("pvalue")[link_a[0], link_a[1]]
+            == r.get_adjacency_matrix("pvalue")[link_b[0], link_b[1]]
+        ), "P-value for link comparison not equal."
+        assert (
+            r.targets_analysed == [link_a[1], link_b[1]]
+        ).all(), "Analysed targets are not correct."
 
     with pytest.raises(RuntimeError):
-        comp.compare_links_within(settings=comp_settings,
-                                  link_a=link_a,
-                                  link_b=[3, 4],
-                                  network=res,
-                                  data=data)
+        comp.compare_links_within(
+            settings=comp_settings, link_a=link_a, link_b=[3, 4], network=res, data=data
+        )
 
 
 def test_tails():
@@ -467,40 +486,41 @@ def test_tails():
     data = Data()
     data.generate_mute_data(100, 5)
 
-    path = os.path.join(os.path.dirname(__file__), 'data/')
-    res_0 = pickle.load(open(path + 'mute_results_0.p', 'rb'))
-    res_1 = pickle.load(open(path + 'mute_results_1.p', 'rb'))
-    res_2 = pickle.load(open(path + 'mute_results_2.p', 'rb'))
-    res_3 = pickle.load(open(path + 'mute_results_3.p', 'rb'))
+    path = os.path.join(os.path.dirname(__file__), "data/")
+    res_0 = pickle.load(open(path + "mute_results_0.p", "rb"))
+    res_1 = pickle.load(open(path + "mute_results_1.p", "rb"))
+    res_2 = pickle.load(open(path + "mute_results_2.p", "rb"))
+    res_3 = pickle.load(open(path + "mute_results_3.p", "rb"))
 
     # comparison settings
     comp_settings = {
-            'cmi_estimator': 'JidtKraskovCMI',
-            'n_perm_max_stat': 50,
-            'n_perm_min_stat': 50,
-            'n_perm_omnibus': 200,
-            'n_perm_max_seq': 50,
-            'alpha_comp': 0.26,
-            'n_perm_comp': 4}
+        "cmi_estimator": "JidtKraskovCMI",
+        "n_perm_max_stat": 50,
+        "n_perm_min_stat": 50,
+        "n_perm_omnibus": 200,
+        "n_perm_max_seq": 50,
+        "alpha_comp": 0.26,
+        "n_perm_comp": 4,
+    }
 
     comp = NetworkComparison()
-    for tail in ['two', 'one']:
-        for stats_type in ['independent', 'dependent']:
-            comp_settings['stats_type'] = stats_type
-            comp_settings['tail_comp'] = tail
-            c_within = comp.compare_within(
-                comp_settings, res_0, res_1, data, data)
+    for tail in ["two", "one"]:
+        for stats_type in ["independent", "dependent"]:
+            comp_settings["stats_type"] = stats_type
+            comp_settings["tail_comp"] = tail
+            c_within = comp.compare_within(comp_settings, res_0, res_1, data, data)
             c_between = comp.compare_between(
                 comp_settings,
                 network_set_a=np.array((res_0, res_1)),
                 network_set_b=np.array((res_2, res_3)),
                 data_set_a=np.array((data, data)),
-                data_set_b=np.array((data, data)))
-            print(c_within.get_adjacency_matrix('pvalue'))
-            print(c_between.get_adjacency_matrix('pvalue'))
+                data_set_b=np.array((data, data)),
+            )
+            print(c_within.get_adjacency_matrix("pvalue"))
+            print(c_between.get_adjacency_matrix("pvalue"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_tails()
     test_compare_links_within()
     test_network_comparison_use_cases()

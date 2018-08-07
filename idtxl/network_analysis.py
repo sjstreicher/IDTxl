@@ -6,7 +6,7 @@ import numpy as np
 from . import idtxl_utils as utils
 
 
-class NetworkAnalysis():
+class NetworkAnalysis:
     """Provide an analysis setup for network inference or comparison.
 
     The class provides routines to check user input and set defaults.
@@ -30,17 +30,21 @@ class NetworkAnalysis():
     @current_value.setter
     def current_value(self, idx):
         if (idx is not None) and (type(idx) is not tuple):
-            raise TypeError(('The current value should be a tuple (index ' +
-                             'process, index sample).'))
+            raise TypeError(
+                (
+                    "The current value should be a tuple (index "
+                    + "process, index sample)."
+                )
+            )
         self._current_value = idx
 
     @property
     def _current_value_realisations(self):
         """Get realisations of the current_value."""
         if self.__current_value_realisations is None:
-            print('Attribute has not been set yet.')
+            print("Attribute has not been set yet.")
         if type(self.__current_value_realisations) is tuple:
-            raise TypeError('something went wrong')
+            raise TypeError("something went wrong")
         return self.__current_value_realisations
 
     @_current_value_realisations.setter
@@ -55,42 +59,45 @@ class NetworkAnalysis():
     def selected_vars_full(self):
         """List of indices of the full conditional set."""
         if self._selected_vars_full is None:
-            print('Attribute has not been set yet.')
+            print("Attribute has not been set yet.")
         return self._selected_vars_full
 
     @selected_vars_full.setter
     def selected_vars_full(self, idx_list):
-        if (type(idx_list) is not list and (type(idx_list[0]) is not tuple)):
-            raise TypeError(('Expected a list of tuples (index process, ' +
-                             'index sample).'))
+        if type(idx_list) is not list and (type(idx_list[0]) is not tuple):
+            raise TypeError(
+                ("Expected a list of tuples (index process, " + "index sample).")
+            )
         self._selected_vars_full = idx_list
 
     @property
     def selected_vars_target(self):
         """List of indices of target samples in the conditional set."""
         if self._selected_vars_target is None:
-            print('Attribute has not been set yet.')
+            print("Attribute has not been set yet.")
         return self._selected_vars_target
 
     @selected_vars_target.setter
     def selected_vars_target(self, idx_list):
-        if (idx_list is not None and type(idx_list) is not list):
-            raise TypeError(('Expected a list of tuples (index process, ' +
-                             'index sample).'))
+        if idx_list is not None and type(idx_list) is not list:
+            raise TypeError(
+                ("Expected a list of tuples (index process, " + "index sample).")
+            )
         self._selected_vars_target = idx_list
 
     @property
     def selected_vars_sources(self):
         """List of indices of source samples in the conditional set."""
         if self._selected_vars_sources is None:
-            print('Attribute has not been set yet.')
+            print("Attribute has not been set yet.")
         return self._selected_vars_sources
 
     @selected_vars_sources.setter
     def selected_vars_sources(self, idx_list):
-        if (idx_list is not None and type(idx_list) is not list):
-            raise TypeError(('Expected a list of tuples (index process, ' +
-                             'index sample).'))
+        if idx_list is not None and type(idx_list) is not list:
+            raise TypeError(
+                ("Expected a list of tuples (index process, " + "index sample).")
+            )
         self._selected_vars_sources = idx_list
 
     @property
@@ -116,8 +123,9 @@ class NetworkAnalysis():
         indices = np.zeros(len(self.selected_vars_target)).astype(int)
         for i, idx in enumerate(self.selected_vars_target):
             indices[i] = self.selected_vars_full.index(idx)
-        self._selected_vars_target_realisations = (
-                                self._selected_vars_realisations[:, indices])
+        self._selected_vars_target_realisations = self._selected_vars_realisations[
+            :, indices
+        ]
         return self.__selected_vars_target_realisations
 
     @_selected_vars_target_realisations.setter
@@ -136,8 +144,9 @@ class NetworkAnalysis():
         indices = np.zeros(len(self.selected_vars_sources)).astype(int)
         for (i, idx) in enumerate(self.selected_vars_sources):
             indices[i] = self.selected_vars_full.index(idx)
-        self._selected_vars_sources_realisations = (
-                                self._selected_vars_realisations[:, indices])
+        self._selected_vars_sources_realisations = self._selected_vars_realisations[
+            :, indices
+        ]
         return self.__selected_vars_sources_realisations
 
     @_selected_vars_sources_realisations.setter
@@ -155,7 +164,8 @@ class NetworkAnalysis():
             self._selected_vars_realisations = realisations
         else:
             self._selected_vars_realisations = np.hstack(
-                            (self._selected_vars_realisations, realisations))
+                (self._selected_vars_realisations, realisations)
+            )
 
     def _idx_to_lag(self, idx_list, current_value_sample=None):
         """Change sample indices to lags for each sample in the list."""
@@ -163,13 +173,12 @@ class NetworkAnalysis():
             try:
                 current_value_sample = self.current_value[1]
             except (AttributeError, TypeError):
-                raise AttributeError('Current value not set.')
+                raise AttributeError("Current value not set.")
 
         lag_list = cp.copy(idx_list)
         for c in idx_list:
             if c[1] > current_value_sample:
-                raise IndexError('Sample time index larger than current '
-                                 'value.')
+                raise IndexError("Sample time index larger than current " "value.")
             lag_list[idx_list.index(c)] = (c[0], current_value_sample - c[1])
         return lag_list
 
@@ -179,12 +188,12 @@ class NetworkAnalysis():
             try:
                 current_value_sample = self.current_value[1]
             except (AttributeError, TypeError):
-                raise AttributeError('Current value not set.')
+                raise AttributeError("Current value not set.")
 
         idx_list = cp.copy(lag_list)
         for c in lag_list:
             if c[1] > current_value_sample:
-                raise IndexError('Sample lag larger than current value.')
+                raise IndexError("Sample lag larger than current value.")
             idx_list[lag_list.index(c)] = (c[0], current_value_sample - c[1])
         return idx_list
 
@@ -223,8 +232,8 @@ class NetworkAnalysis():
 
         # Get realisations of the single and remaining variables.
         real_single = np.expand_dims(
-                        self._selected_vars_realisations[:, array_col_single],
-                        axis=1)
+            self._selected_vars_realisations[:, array_col_single], axis=1
+        )
         if len(idx_full) == 1:
             # If no realiastions remain, set variable to None instead of and
             # empty array so the JIDT estimator doesn't break
@@ -286,27 +295,32 @@ class NetworkAnalysis():
                 realisations of the selected variables
         """
         assert len(idx) == realisations.shape[1], (
-            'Dimensionality of realisations array ({0}) and length of index '
-            'list ({1}) do not match.'.format(realisations.shape[1], len(idx)))
+            "Dimensionality of realisations array ({0}) and length of index "
+            "list ({1}) do not match.".format(realisations.shape[1], len(idx))
+        )
         self._append_selected_vars_idx(idx)
         self._append_selected_vars_realisations(realisations)
 
     def _remove_selected_var(self, idx):
         """Remove a single selected variable and its realisations."""
         self._selected_vars_realisations = utils.remove_column(
-                                         self._selected_vars_realisations,
-                                         self.selected_vars_full.index(idx))
+            self._selected_vars_realisations, self.selected_vars_full.index(idx)
+        )
         self.selected_vars_full.pop(self.selected_vars_full.index(idx))
         if idx[0] == self.target:
-            self.selected_vars_target.pop(
-                                        self.selected_vars_target.index(idx))
+            self.selected_vars_target.pop(self.selected_vars_target.index(idx))
         else:
-            self.selected_vars_sources.pop(
-                                        self.selected_vars_sources.index(idx))
+            self.selected_vars_sources.pop(self.selected_vars_sources.index(idx))
 
     def _calculate_single_link(
-                    self, data, current_value, source_vars, target_vars=None,
-                    sources='all', conditioning='full'):
+        self,
+        data,
+        current_value,
+        source_vars,
+        target_vars=None,
+        sources="all",
+        conditioning="full",
+    ):
         """Calculate dependency measure for all links into a target.
 
         Calculate dependency measure for all links into a target. A single link
@@ -362,32 +376,36 @@ class NetworkAnalysis():
         # Get realisations of target variables and the current value, constant
         # over sources. Permute current value realisations to generate
         # surrogates if requested.
-        target_realisations = data.get_realisations(
-            current_value, target_vars)[0]
+        target_realisations = data.get_realisations(current_value, target_vars)[0]
         current_value_realisations = data.get_realisations(
-            current_value, [current_value])[0]
+            current_value, [current_value]
+        )[0]
 
         # Check requested sources.
-        if sources == 'all':
+        if sources == "all":
             sources = [s[0] for s in source_vars]
         else:
             if type(sources) is int:  # handle integer inputs
                 sources = [sources]
             sources = np.array(sources)
             if any(sources > (data.n_processes - 1)):
-                raise RuntimeError('At least one source ({0}) is not in no. '
-                                   'nodes in the data ({1}).'.format(
-                                       sources, data.n_processes))
+                raise RuntimeError(
+                    "At least one source ({0}) is not in no. "
+                    "nodes in the data ({1}).".format(sources, data.n_processes)
+                )
 
         # Allocate memory: either a multidimensional array if local values are
         # required, or a 1D-array for averaged values for each link.
-        if self.settings['local_values']:
+        if self.settings["local_values"]:
             # Collect local values in a [sources x samples x replications]
             # matrix.
-            links = np.zeros((
-                len(sources),
-                data.n_realisations_samples(current_value),
-                data.n_replications))
+            links = np.zeros(
+                (
+                    len(sources),
+                    data.n_realisations_samples(current_value),
+                    data.n_replications,
+                )
+            )
         else:
             links = np.zeros(len(sources))
 
@@ -400,45 +418,53 @@ class NetworkAnalysis():
             link_vars = [i for i in source_vars if i[0] == s]
             conditional_vars = [i for i in source_vars if i[0] != s]
             source_realisations, replication_ind = data.get_realisations(
-                current_value, link_vars)
+                current_value, link_vars
+            )
 
             # Determine which type of conditioning is requested.
-            if conditioning == 'full':
+            if conditioning == "full":
                 if target_realisations is None:
                     # Use sources' pasts only, returns None if conditional vars
                     # is empty.
                     conditional_realisations = data.get_realisations(
-                            current_value, conditional_vars)[0]
+                        current_value, conditional_vars
+                    )[0]
                 else:
                     # Use target's and sources' past, check if conditional vars
                     # is not empty, otherwise np.hstack crashes.
                     if conditional_vars:
-                        conditional_realisations = np.hstack((
-                            data.get_realisations(
-                                current_value, conditional_vars)[0],
-                            target_realisations))
-                    else:   # use target's past only
+                        conditional_realisations = np.hstack(
+                            (
+                                data.get_realisations(current_value, conditional_vars)[
+                                    0
+                                ],
+                                target_realisations,
+                            )
+                        )
+                    else:  # use target's past only
                         conditional_realisations = target_realisations
 
-            elif conditioning == 'target':  # use target's past only (biv. TE)
+            elif conditioning == "target":  # use target's past only (biv. TE)
                 conditional_realisations = target_realisations
-            elif conditioning == 'none':  # no conditioning (bivariate MI)
+            elif conditioning == "none":  # no conditioning (bivariate MI)
                 conditional_realisations = None
             else:
-                raise RuntimeError('Unknown conditioning: {0}.'.format(
-                    conditioning))
+                raise RuntimeError("Unknown conditioning: {0}.".format(conditioning))
 
-            if self.settings['local_values']:
+            if self.settings["local_values"]:
                 local_values = self._cmi_estimator.estimate(
                     current_value_realisations,
                     source_realisations,
-                    conditional_realisations)
+                    conditional_realisations,
+                )
                 links[i] = local_values.reshape(
-                    max(replication_ind) + 1, sum(replication_ind == 0)).T
+                    max(replication_ind) + 1, sum(replication_ind == 0)
+                ).T
             else:
                 links[i] = self._cmi_estimator.estimate(
                     current_value_realisations,
                     source_realisations,
-                    conditional_realisations)
+                    conditional_realisations,
+                )
 
         return links

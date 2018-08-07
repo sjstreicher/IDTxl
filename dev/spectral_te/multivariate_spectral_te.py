@@ -43,16 +43,16 @@ class MultivariateSpectralTE(NetworkAnalysis):
         # estimated quantity may be different from CMI in other inference
         # algorithms. (Everything else can be done in the parent class.)
         try:
-            EstimatorClass = find_estimator(settings['cmi_estimator'])
+            EstimatorClass = find_estimator(settings["cmi_estimator"])
         except KeyError:
-            raise KeyError('Estimator was not specified!')
+            raise KeyError("Estimator was not specified!")
         self._cmi_estimator = EstimatorClass(settings)
-        self.n_permutations = settings.get('n_perm_spec', 200)
-        self.alpha = settings.get('alpha_spec', 0.05)
-        self.tail = settings.get('tail', 'two')
+        self.n_permutations = settings.get("n_perm_spec", 200)
+        self.alpha = settings.get("alpha_spec", 0.05)
+        self.tail = settings.get("tail", "two")
         self.cmi_settings = settings
 
-    def analyse_network(self, res_network, data, targets='all', sources='all'):
+    def analyse_network(self, res_network, data, targets="all", sources="all"):
         """Find multivariate spectral transfer entropy between all nodes.
 
         Estimate multivariate transfer entropy (TE) between all nodes in the
@@ -115,7 +115,7 @@ class MultivariateSpectralTE(NetworkAnalysis):
         # TODO see MultivariateTE.analyse_network()
         return 1
 
-    def analyse_single_target(self, res_target, data, sources='all'):
+    def analyse_single_target(self, res_target, data, sources="all"):
         """Find multivariate spectral transfer entropy into a target.
 
         Test multivariate spectral transfer entropy (TE) between all source
@@ -187,8 +187,9 @@ class MultivariateSpectralTE(NetworkAnalysis):
         """
         # Convert lags in the results structure to absolute indices
         idx_list_sources = self._lag_to_idx(
-                    lag_list=res_target[target]['selected_vars_sources'],
-                    current_value_sample=res_target[target]['current_value'])
+            lag_list=res_target[target]["selected_vars_sources"],
+            current_value_sample=res_target[target]["current_value"],
+        )
 
         # Main algorithm.
         for s in idx_list_sources:

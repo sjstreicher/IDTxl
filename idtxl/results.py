@@ -34,9 +34,9 @@ class DotDict(dict):
         Following a fix described here:
         https://github.com/aparo/pyes/pull/115/commits/d2076b385c38d6d00cebfe0df7b0d1ba8df934bc
         """
-        dot_dict_copy = DotDict([
-            (cp.deepcopy(k, memo),
-             cp.deepcopy(v, memo)) for k, v in self.items()])
+        dot_dict_copy = DotDict(
+            [(cp.deepcopy(k, memo), cp.deepcopy(v, memo)) for k, v in self.items()]
+        )
         return dot_dict_copy
 
     def __getstate__(self):
@@ -49,7 +49,7 @@ class DotDict(dict):
         # self.__dict__ = self
 
 
-class Results():
+class Results:
     """Parent class for results of network analysis algorithms.
 
     Provide a container for results of network analysis algorithms, e.g.,
@@ -73,11 +73,13 @@ class Results():
 
     def __init__(self, n_nodes, n_realisations, normalised):
         self.settings = DotDict({})
-        self.data_properties = DotDict({
-            'n_nodes': n_nodes,
-            'n_realisations': n_realisations,
-            'normalised': normalised
-        })
+        self.data_properties = DotDict(
+            {
+                "n_nodes": n_nodes,
+                "n_realisations": n_realisations,
+                "normalised": normalised,
+            }
+        )
 
     def _print_edge_list(self, adjacency_matrix, weights):
         """Print edge list to console."""
@@ -86,31 +88,40 @@ class Results():
             for t in range(self.data_properties.n_nodes):
                 if adjacency_matrix[s, t]:
                     link_found = True
-                    if weights == 'binary':
-                        print('\t{0} -> {1}'.format(
-                            s, t, weights, adjacency_matrix[s, t]))
+                    if weights == "binary":
+                        print(
+                            "\t{0} -> {1}".format(s, t, weights, adjacency_matrix[s, t])
+                        )
                     else:
-                        print('\t{0} -> {1}, {2}: {3}'.format(
-                            s, t, weights, adjacency_matrix[s, t]))
+                        print(
+                            "\t{0} -> {1}, {2}: {3}".format(
+                                s, t, weights, adjacency_matrix[s, t]
+                            )
+                        )
 
         if not link_found:
-            print('No significant links found in the network.')
+            print("No significant links found in the network.")
 
     def _check_result(self, process, settings):
         # Check if new result process is part of the network
         if process > (self.data_properties.n_nodes - 1):
-            raise RuntimeError('Can not add single result - process {0} is not'
-                               ' in no. nodes in the data ({1}).'.format(
-                                   process, self.data_properties.n_nodes))
+            raise RuntimeError(
+                "Can not add single result - process {0} is not"
+                " in no. nodes in the data ({1}).".format(
+                    process, self.data_properties.n_nodes
+                )
+            )
         # Don't add duplicate processes
         if self._is_duplicate_process(process):
-            raise RuntimeError('Can not add single result - results for target'
-                               ' or process {0} already exist.'.format(
-                                   process))
+            raise RuntimeError(
+                "Can not add single result - results for target"
+                " or process {0} already exist.".format(process)
+            )
         # Don't add results with conflicting settings
         if utils.conflicting_entries(self.settings, settings):
             raise RuntimeError(
-                'Can not add single result - analysis settings are not equal.')
+                "Can not add single result - analysis settings are not equal."
+            )
 
     def _is_duplicate_process(self, process):
         # Test if process is already present in object
@@ -149,17 +160,20 @@ class Results():
         for r in results:
             processes = r._processes_analysed
             if utils.conflicting_entries(self.settings, r.settings):
-                raise RuntimeError('Can not combine results - analysis '
-                                   'settings are not equal.')
+                raise RuntimeError(
+                    "Can not combine results - analysis " "settings are not equal."
+                )
             for p in processes:
                 # Remove potential partial FDR-corrected results. These are no
                 # longer valid for the combined network.
                 if self._is_duplicate_process(p):
-                    raise RuntimeError('Can not combine results - results for '
-                                       'process {0} already exist.'.format(p))
+                    raise RuntimeError(
+                        "Can not combine results - results for "
+                        "process {0} already exist.".format(p)
+                    )
                 try:
                     del r.fdr_corrected
-                    print('Removing FDR-corrected results.')
+                    print("Removing FDR-corrected results.")
                 except AttributeError:
                     pass
 
@@ -170,8 +184,9 @@ class Results():
                         results_to_add = r._single_process[p]
                     except AttributeError:
                         raise AttributeError(
-                            'Did not find any method attributes to combine '
-                            '(.single_proces or ._single_target).')
+                            "Did not find any method attributes to combine "
+                            "(.single_proces or ._single_target)."
+                        )
                 self._add_single_result(p, results_to_add, r.settings)
 
 
@@ -230,8 +245,8 @@ class ResultsSingleProcessAnalysis(Results):
     def _add_fdr(self, fdr, alpha=None, constant=None):
         """Add settings and results of FDR correction."""
         # Add settings of FDR-correction
-        self.settings['alpha_fdr'] = alpha
-        self.settings['fdr_constant'] = constant
+        self.settings["alpha_fdr"] = alpha
+        self.settings["fdr_constant"] = constant
         # Add results of FDR-correction. FDR-correction can be None if
         # correction is impossible due to the number of permutations in
         # individual analysis being too low to allow for individual p-values
@@ -277,27 +292,31 @@ class ResultsSingleProcessAnalysis(Results):
         # Return required key from required _single_process dictionary, dealing
         # with the FDR at a high level
         if process not in self.processes_analysed:
-            raise RuntimeError('No results for process {0}.'.format(process))
+            raise RuntimeError("No results for process {0}.".format(process))
         if fdr:
             try:
                 return self._single_process_fdr[process]
             except AttributeError:
                 raise RuntimeError(
-                    'No FDR-corrected results have been added. Set'
-                    ' ''fdr=False'' to see uncorrected results.')
+                    "No FDR-corrected results have been added. Set"
+                    " "
+                    "fdr=False"
+                    " to see uncorrected results."
+                )
             except KeyError:
                 raise RuntimeError(
-                    'No FDR-corrected results for process {0}. Set'
-                    ' ''fdr=False'' to see uncorrected results.'.format(
-                        process))
+                    "No FDR-corrected results for process {0}. Set"
+                    " "
+                    "fdr=False"
+                    " to see uncorrected results.".format(process)
+                )
         else:
             try:
                 return self._single_process[process]
             except AttributeError:
-                raise RuntimeError('No results have been added.')
+                raise RuntimeError("No results have been added.")
             except KeyError:
-                raise RuntimeError(
-                    'No results for process {0}.'.format(process))
+                raise RuntimeError("No results for process {0}.".format(process))
 
     def get_significant_processes(self, fdr=True):
         """Return statistically-significant processes.
@@ -315,14 +334,16 @@ class ResultsSingleProcessAnalysis(Results):
                 Statistical significance for each process
         """
         significant_processes = np.array(
-                [self.get_single_process(process=p, fdr=fdr)['ais_sign']
-                 for p in self.processes_analysed],
-                dtype=bool)
+            [
+                self.get_single_process(process=p, fdr=fdr)["ais_sign"]
+                for p in self.processes_analysed
+            ],
+            dtype=bool,
+        )
         return significant_processes
 
 
 class ResultsNetworkAnalysis(Results):
-
     def __init__(self, n_nodes, n_realisations, normalised):
         super().__init__(n_nodes, n_realisations, normalised)
         self._single_target = {}
@@ -388,27 +409,31 @@ class ResultsNetworkAnalysis(Results):
                 (result.selected_vars_sources).
         """
         if target not in self.targets_analysed:
-            raise RuntimeError('No results for target {0}.'.format(target))
+            raise RuntimeError("No results for target {0}.".format(target))
         if fdr:
             try:
                 return self._single_target_fdr[target]
             except AttributeError:
                 raise RuntimeError(
-                    'No FDR-corrected results have been added. Set'
-                    ' ''fdr=False'' to see uncorrected results.')
+                    "No FDR-corrected results have been added. Set"
+                    " "
+                    "fdr=False"
+                    " to see uncorrected results."
+                )
             except KeyError:
                 raise RuntimeError(
-                    'No FDR-corrected results for target {0}. Set'
-                    ' ''fdr=False'' to see uncorrected results.'.format(
-                        target))
+                    "No FDR-corrected results for target {0}. Set"
+                    " "
+                    "fdr=False"
+                    " to see uncorrected results.".format(target)
+                )
         else:
             try:
                 return self._single_target[target]
             except AttributeError:
-                raise RuntimeError('No results have been added.')
+                raise RuntimeError("No results have been added.")
             except KeyError:
-                raise RuntimeError(
-                    'No results for target {0}.'.format(target))
+                raise RuntimeError("No results for target {0}.".format(target))
 
     def get_target_sources(self, target, fdr=True):
         """Return list of sources (parents) for given target.
@@ -420,7 +445,7 @@ class ResultsNetworkAnalysis(Results):
                 if True, sources are returned for FDR-corrected results
                 (default=True)
         """
-        v = self.get_single_target(target, fdr)['selected_vars_sources']
+        v = self.get_single_target(target, fdr)["selected_vars_sources"]
         return np.unique(np.array([s[0] for s in v]))
 
 
@@ -460,9 +485,9 @@ class ResultsNetworkInference(ResultsNetworkAnalysis):
     def _add_fdr(self, fdr, alpha=None, correct_by_target=None, constant=None):
         """Add settings and results of FDR correction."""
         # Add settings of FDR-correction
-        self.settings['alpha_fdr'] = alpha
-        self.settings['fdr_correct_by_target'] = correct_by_target
-        self.settings['fdr_constant'] = constant
+        self.settings["alpha_fdr"] = alpha
+        self.settings["fdr_correct_by_target"] = correct_by_target
+        self.settings["fdr_constant"] = constant
         # Add results of FDR-correction. FDR-correction can be None if
         # correction is impossible due to the number of permutations in
         # individual analysis being too low to allow for individual p-values
@@ -473,15 +498,16 @@ class ResultsNetworkInference(ResultsNetworkAnalysis):
             self._single_target_fdr = DotDict(fdr)
 
     def _get_inference_measure(self, target):
-        if 'selected_sources_te' in self._single_target[target]:
+        if "selected_sources_te" in self._single_target[target]:
             return self._single_target[target].selected_sources_te
-        elif 'selected_sources_mi' in self._single_target[target]:
+        elif "selected_sources_mi" in self._single_target[target]:
             return self._single_target[target].selected_sources_mi
         else:
-            raise KeyError('No entry with network inference measure found for '
-                           'current target')
+            raise KeyError(
+                "No entry with network inference measure found for " "current target"
+            )
 
-    def get_target_delays(self, target, criterion='max_te', fdr=True):
+    def get_target_delays(self, target, criterion="max_te", fdr=True):
         """Return list of information-transfer delays for a given target.
 
         Return a list of information-transfer delays for a given target.
@@ -512,22 +538,33 @@ class ResultsNetworkInference(ResultsNetworkAnalysis):
         delays = np.zeros(sources.shape[0]).astype(int)
 
         # Get the source index for each past source variable of the target
-        all_vars_sources = np.array([x[0] for x in self.get_single_target(
-            target=target, fdr=fdr)['selected_vars_sources']])
+        all_vars_sources = np.array(
+            [
+                x[0]
+                for x in self.get_single_target(target=target, fdr=fdr)[
+                    "selected_vars_sources"
+                ]
+            ]
+        )
         # Get the lag for each past source variable of the target
-        all_vars_lags = np.array([x[1] for x in self.get_single_target(
-            target=target, fdr=fdr)['selected_vars_sources']])
+        all_vars_lags = np.array(
+            [
+                x[1]
+                for x in self.get_single_target(target=target, fdr=fdr)[
+                    "selected_vars_sources"
+                ]
+            ]
+        )
         # Get p-values and TE-values for past source variable
-        pval = self.get_single_target(
-            target=target, fdr=fdr)['selected_sources_pval']
+        pval = self.get_single_target(target=target, fdr=fdr)["selected_sources_pval"]
         measure = self._get_inference_measure(target)
 
         # Find delay for each source
         for (ind, s) in enumerate(sources):
-            if criterion == 'max_p':
+            if criterion == "max_p":
                 # Find the minimum p-value amongst the variables in source s
                 delays_ind = np.argmin(pval[all_vars_sources == s])
-            elif criterion == 'max_te':
+            elif criterion == "max_te":
                 # Find the maximum TE-value amongst the variables in source s
                 delays_ind = np.argmax(measure[all_vars_sources == s])
 
@@ -564,37 +601,33 @@ class ResultsNetworkInference(ResultsNetworkAnalysis):
                 return FDR-corrected results (default=True)
         """
         adjacency_matrix = np.zeros(
-            (self.data_properties.n_nodes, self.data_properties.n_nodes),
-            dtype=int)
+            (self.data_properties.n_nodes, self.data_properties.n_nodes), dtype=int
+        )
 
-        if weights == 'max_te_lag':
+        if weights == "max_te_lag":
             for t in self.targets_analysed:
                 sources = self.get_target_sources(target=t, fdr=fdr)
-                delays = self.get_target_delays(target=t,
-                                                criterion='max_te',
-                                                fdr=fdr)
+                delays = self.get_target_delays(target=t, criterion="max_te", fdr=fdr)
                 if sources.size:
                     adjacency_matrix[sources, t] = delays
-        elif weights == 'max_p_lag':
+        elif weights == "max_p_lag":
             for t in self.targets_analysed:
                 sources = self.get_target_sources(target=t, fdr=fdr)
-                delays = self.get_target_delays(target=t,
-                                                criterion='max_p',
-                                                fdr=fdr)
+                delays = self.get_target_delays(target=t, criterion="max_p", fdr=fdr)
                 if sources.size:
                     adjacency_matrix[sources, t] = delays
-        elif weights == 'vars_count':
+        elif weights == "vars_count":
             for t in self.targets_analysed:
                 single_result = self.get_single_target(target=t, fdr=fdr)
                 for s in single_result.selected_vars_sources:
                     adjacency_matrix[s[0], t] += 1
-        elif weights == 'binary':
+        elif weights == "binary":
             for t in self.targets_analysed:
                 single_result = self.get_single_target(target=t, fdr=fdr)
                 for s in single_result.selected_vars_sources:
                     adjacency_matrix[s[0], t] = 1
         else:
-            raise RuntimeError('Invalid weights value')
+            raise RuntimeError("Invalid weights value")
         return adjacency_matrix
 
     def print_edge_list(self, weights, fdr=True):
@@ -685,8 +718,9 @@ class ResultsPartialInformationDecomposition(ResultsNetworkAnalysis):
                 (result['selected_vars_sources']) or via dot-notation
                 (result.selected_vars_sources).
         """
-        return super(ResultsPartialInformationDecomposition,
-                     self).get_single_target(target, fdr=False)
+        return super(ResultsPartialInformationDecomposition, self).get_single_target(
+            target, fdr=False
+        )
 
 
 class ResultsNetworkComparison(ResultsNetworkAnalysis):
@@ -739,19 +773,19 @@ class ResultsNetworkComparison(ResultsNetworkAnalysis):
     def _add_results(self, union_network, results, settings):
         # Check if results have already been added to this instance.
         if self.settings:
-            raise RuntimeWarning('Overwriting existing results.')
+            raise RuntimeWarning("Overwriting existing results.")
         # Add results
         self.settings = DotDict(settings)
-        self.targets_analysed = union_network['targets_analysed']
+        self.targets_analysed = union_network["targets_analysed"]
         for t in self.targets_analysed:
             self._single_target[t] = DotDict(union_network._single_target[t])
         # self.max_lag = union_network['max_lag']
-        self.surrogate_distributions = results['cmi_surr']
-        self.ab = results['a>b']
-        self.cmi_diff_abs = results['cmi_diff_abs']
-        self.pval = results['pval']
+        self.surrogate_distributions = results["cmi_surr"]
+        self.ab = results["a>b"]
+        self.cmi_diff_abs = results["cmi_diff_abs"]
+        self.pval = results["pval"]
 
-    def get_adjacency_matrix(self, weights='comparison'):
+    def get_adjacency_matrix(self, weights="comparison"):
         """Return adjacency matrix.
 
         Return adjacency matrix resulting from network inference.
@@ -777,45 +811,47 @@ class ResultsNetworkComparison(ResultsNetworkAnalysis):
         # networks only. This may have to change in the future, in which case
         # the value for 'fdr' when accessing single target results or adjacency
         # matrices has to be taken from the analysis settings.
-        if weights == 'comparison':
+        if weights == "comparison":
             adjacency_matrix = np.zeros(
-                (self.data_properties.n_nodes, self.data_properties.n_nodes),
-                dtype=bool)
+                (self.data_properties.n_nodes, self.data_properties.n_nodes), dtype=bool
+            )
             for t in self.targets_analysed:
                 sources = self.get_target_sources(t)
                 for (i, s) in enumerate(sources):
-                        adjacency_matrix[s, t] = self.ab[t][i]
-        elif weights == 'union':
+                    adjacency_matrix[s, t] = self.ab[t][i]
+        elif weights == "union":
             adjacency_matrix = np.zeros(
-                (self.data_properties.n_nodes, self.data_properties.n_nodes),
-                dtype=int)
+                (self.data_properties.n_nodes, self.data_properties.n_nodes), dtype=int
+            )
             for t in self.targets_analysed:
                 sources = self.get_target_sources(t)
                 if sources.size:
                     adjacency_matrix[sources, t] = 1
-        elif weights == 'diff_abs':
+        elif weights == "diff_abs":
             adjacency_matrix = np.zeros(
                 (self.data_properties.n_nodes, self.data_properties.n_nodes),
-                dtype=float)
+                dtype=float,
+            )
             for t in self.targets_analysed:
                 sources = self.get_target_sources(t)
                 for (i, s) in enumerate(sources):
                     adjacency_matrix[s, t] = self.cmi_diff_abs[t][i]
-        elif weights == 'pvalue':
+        elif weights == "pvalue":
             adjacency_matrix = np.ones(
                 (self.data_properties.n_nodes, self.data_properties.n_nodes),
-                dtype=float)
+                dtype=float,
+            )
             for t in self.targets_analysed:
                 sources = self.get_target_sources(t)
                 for (i, s) in enumerate(sources):
                     adjacency_matrix[s, t] = self.pval[t][i]
         else:
-            raise RuntimeError('Invalid weights value')
+            raise RuntimeError("Invalid weights value")
 
         # self._print_edge_list(adjacency_matrix, weights=weights)
         return adjacency_matrix
 
-    def print_edge_list(self, weights='comparison'):
+    def print_edge_list(self, weights="comparison"):
         """Print results of network comparison to console.
 
         Print results of network comparison to console. Output looks like this:
@@ -863,7 +899,8 @@ class ResultsNetworkComparison(ResultsNetworkAnalysis):
                 (result.selected_vars_sources).
         """
         return super(ResultsNetworkComparison, self).get_single_target(
-            target, fdr=False)
+            target, fdr=False
+        )
 
     def get_target_sources(self, target):
         """Return list of sources (parents) for given target.
@@ -872,5 +909,5 @@ class ResultsNetworkComparison(ResultsNetworkAnalysis):
             target : int
                 target index
         """
-        v = self.get_single_target(target)['selected_vars_sources']
+        v = self.get_single_target(target)["selected_vars_sources"]
         return np.unique(np.array([s[0] for s in v]))

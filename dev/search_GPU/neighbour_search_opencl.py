@@ -1,12 +1,16 @@
 from pkg_resources import resource_filename
 import numpy as np
 from . import idtxl_exceptions as ex
+
 try:
     import pyopencl as cl
 except ImportError as err:
-    ex.package_missing(err, 'PyOpenCl is not available on this system. Install'
-                            ' it using pip or the package manager to use '
-                            'OpenCL-powered CMI estimation.')
+    ex.package_missing(
+        err,
+        "PyOpenCl is not available on this system. Install"
+        " it using pip or the package manager to use "
+        "OpenCL-powered CMI estimation.",
+    )
 
 VERBOSE = False
 
@@ -54,14 +58,15 @@ def knn_search(pointset, n_dim, knn_k, theiler_t, n_chunks=1, gpuid=0):
     #     pointset = pointset.transpose().copy()
     #     if VERBOSE:
     #         print('search GPU: fixed shape of input data')
-    if not pointset.flags['C_CONTIGUOUS']:
+    if not pointset.flags["C_CONTIGUOUS"]:
         pointset = np.ascontiguousarray(pointset)
         if VERBOSE:
-            print('search GPU: fixed memory layout of input data')
+            print("search GPU: fixed memory layout of input data")
     if n_dim != pointset.shape[1]:
-        raise RuntimeError('Provided dimension ({0}) and actual dimension of '
-                           'the data ({1}) do not match.'.format(
-                               n_dim, pointset.shape[1]))
+        raise RuntimeError(
+            "Provided dimension ({0}) and actual dimension of "
+            "the data ({1}) do not match.".format(n_dim, pointset.shape[1])
+        )
     # Allocate memory for GPU search output.
     # indexes = np.zeros((knn_k, pointset.shape[1]), dtype=np.int32)
     # distances = np.zeros((knn_k, pointset.shape[1]), dtype=np.float32)
@@ -73,8 +78,9 @@ def knn_search(pointset, n_dim, knn_k, theiler_t, n_chunks=1, gpuid=0):
     # memory given the current chunk size. Calculate the number of necessary
     # runs (calls to the GPU) given the max. number of chunks that fit onto the
     # GPU and the actual number of chunks.
-    max_chunks_per_run = _get_max_chunks_per_run(gpuid, n_chunks, pointset,
-                                                 distances, indexes)
+    max_chunks_per_run = _get_max_chunks_per_run(
+        gpuid, n_chunks, pointset, distances, indexes
+    )
     chunks_per_run = min(max_chunks_per_run, n_chunks)
     n_runs = np.ceil(n_chunks / chunks_per_run).astype(int)
     chunksize = int(n_points / n_chunks)
@@ -88,16 +94,21 @@ def knn_search(pointset, n_dim, knn_k, theiler_t, n_chunks=1, gpuid=0):
         # print('no. points: {0}, no. chunks: {1}, pointset shape: {2}'
         #       .format(n_points, n_chunks, pointset[:, i_1:i_2].shape))
 
-        ind_temp = np.zeros((knn_k, chunks_per_run * chunksize),
-                            dtype=np.int32)
-        dist_temp = np.zeros((knn_k, chunks_per_run * chunksize),
-                             dtype=np.float32)
-        ps_temp = pointset[i_1:i_2, :].astype('float32')
-        success = clFindKnn(ind_temp, dist_temp,
-                            pointset[i_1:i_2, :].astype('float32'),
-                            pointset[i_1:i_2, :].astype('float32'), int(knn_k),
-                            int(theiler_t), int(chunks_per_run), int(n_dim),
-                            int(chunks_per_run * chunksize), int(gpuid))
+        ind_temp = np.zeros((knn_k, chunks_per_run * chunksize), dtype=np.int32)
+        dist_temp = np.zeros((knn_k, chunks_per_run * chunksize), dtype=np.float32)
+        ps_temp = pointset[i_1:i_2, :].astype("float32")
+        success = clFindKnn(
+            ind_temp,
+            dist_temp,
+            pointset[i_1:i_2, :].astype("float32"),
+            pointset[i_1:i_2, :].astype("float32"),
+            int(knn_k),
+            int(theiler_t),
+            int(chunks_per_run),
+            int(n_dim),
+            int(chunks_per_run * chunksize),
+            int(gpuid),
+        )
         indexes[:, i_1:i_2] = ind_temp
         distances[:, i_1:i_2] = dist_temp
         if not success:
@@ -143,15 +154,16 @@ def range_search(pointset, n_dim, radius, theiler_t, n_chunks=1, gpuid=0):
     # check for a data layout in memory as expected by the low level functions
     # ndim * [n_points * n_chunks]
     if n_dim != pointset.shape[0]:
-        assert n_dim == pointset.shape[1], ('Given dimension does not match '
-                                            'data axis.')
+        assert n_dim == pointset.shape[1], (
+            "Given dimension does not match " "data axis."
+        )
         pointset = pointset.transpose().copy()
         if VERBOSE:
-            print('search GPU: fixed shape input data')
-    if pointset.flags['C_CONTIGUOUS'] is not True:
+            print("search GPU: fixed shape input data")
+    if pointset.flags["C_CONTIGUOUS"] is not True:
         pointset = np.ascontiguousarray(pointset)
         if VERBOSE:
-            print('search GPU: fixed memory layout of input data')
+            print("search GPU: fixed memory layout of input data")
 
     # Allocate memory for GPU search output
     pointcount = np.zeros((pointset.shape[1]), dtype=np.int32)
@@ -160,8 +172,9 @@ def range_search(pointset, n_dim, radius, theiler_t, n_chunks=1, gpuid=0):
     # memory given the current chunk size. Calculate the number of necessary
     # runs (calls to the GPU) given the max. number of chunks that fit onto the
     # GPU and the actual number of chunks.
-    chunks_per_run = _get_max_chunks_per_run(gpuid, n_chunks, pointset,
-                                                 pointcount, radius)
+    chunks_per_run = _get_max_chunks_per_run(
+        gpuid, n_chunks, pointset, pointcount, radius
+    )
     chunks_per_run = min(chunks_per_run, n_chunks)
     n_runs = np.ceil(n_chunks / chunks_per_run).astype(int)
 
@@ -171,11 +184,17 @@ def range_search(pointset, n_dim, radius, theiler_t, n_chunks=1, gpuid=0):
     pointdim = pointset.shape[0]
     n_points = pointset[:, i_1:i_2].shape[1]
     for r in range(n_runs):
-        success = clFindRSAll(pointcount[i_1:i_2],
-                              pointset[:, i_1:i_2].astype('float32'),
-                              pointset[:, i_1:i_2].astype('float32'),
-                              radius[i_1:i_2], theiler_t, n_chunks, pointdim,
-                              n_points, gpuid)
+        success = clFindRSAll(
+            pointcount[i_1:i_2],
+            pointset[:, i_1:i_2].astype("float32"),
+            pointset[:, i_1:i_2].astype("float32"),
+            radius[i_1:i_2],
+            theiler_t,
+            n_chunks,
+            pointdim,
+            n_points,
+            gpuid,
+        )
         if not success:
             print("Error in OpenCL knn search!")
             return 1
@@ -185,16 +204,25 @@ def range_search(pointset, n_dim, radius, theiler_t, n_chunks=1, gpuid=0):
     return pointcount
 
 
-def clFindKnn(h_bf_indexes, h_bf_distances, h_pointset, h_query, kth, thelier,
-              nchunks, pointdim, signallength, gpuid):
+def clFindKnn(
+    h_bf_indexes,
+    h_bf_distances,
+    h_pointset,
+    h_query,
+    kth,
+    thelier,
+    nchunks,
+    pointdim,
+    signallength,
+    gpuid,
+):
 
-    assert h_pointset.flags['C_CONTIGUOUS'], 'Pointset is not C-contiguous.'
-    assert h_query.flags['C_CONTIGUOUS'], 'Queryset is not C-contiguous.'
-
+    assert h_pointset.flags["C_CONTIGUOUS"], "Pointset is not C-contiguous."
+    assert h_query.flags["C_CONTIGUOUS"], "Queryset is not C-contiguous."
 
     triallength = int(signallength / nchunks)
     # print 'Values:', pointdim, triallength, signallength, kth, thelier
-    '''
+    """
     for platform in cl.get_platforms():
         for device in platform.get_devices():
             print("===============================================================")
@@ -210,46 +238,68 @@ def clFindKnn(h_bf_indexes, h_bf_distances, h_pointset, h_query, kth, thelier,
             print("Device compute units:", device.max_compute_units)
             print("Device max work group size:", device.max_work_group_size)
             print("Device max work item sizes:", device.max_work_item_sizes)
-    '''
+    """
 
     # Set up OpenCL
     my_gpu_devices, context, queue = _get_device(gpuid)
 
     # Check memory resources.
-    usedmem = int((h_query.nbytes + h_pointset.nbytes + h_bf_distances.nbytes +
-                   h_bf_indexes.nbytes) // 1024 // 1024)
+    usedmem = int(
+        (
+            h_query.nbytes
+            + h_pointset.nbytes
+            + h_bf_distances.nbytes
+            + h_bf_indexes.nbytes
+        )
+        // 1024
+        // 1024
+    )
     totalmem = int(my_gpu_devices[gpuid].global_mem_size // 1024 // 1024)
 
-    if (totalmem*0.90) < usedmem:
-        print(("WARNING:", usedmem, "Mb used out of", totalmem,
-               "Mb. The GPU could run out of memory."))
+    if (totalmem * 0.90) < usedmem:
+        print(
+            (
+                "WARNING:",
+                usedmem,
+                "Mb used out of",
+                totalmem,
+                "Mb. The GPU could run out of memory.",
+            )
+        )
 
     # Create OpenCL buffers
-    d_bf_query = cl.Buffer(context,
-                           cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
-                           hostbuf=h_query)
+    d_bf_query = cl.Buffer(
+        context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR, hostbuf=h_query
+    )
     d_bf_pointset = cl.Buffer(
-                        context,
-                        cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
-                        hostbuf=h_pointset)
-    d_bf_distances = cl.Buffer(context,
-                               cl.mem_flags.READ_WRITE,
-                               h_bf_distances.nbytes)
-    d_bf_indexes = cl.Buffer(context,
-                             cl.mem_flags.READ_WRITE,
-                             h_bf_indexes.nbytes)
+        context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR, hostbuf=h_pointset
+    )
+    d_bf_distances = cl.Buffer(context, cl.mem_flags.READ_WRITE, h_bf_distances.nbytes)
+    d_bf_indexes = cl.Buffer(context, cl.mem_flags.READ_WRITE, h_bf_indexes.nbytes)
 
     # Kernel Launch
-    kernelLocation = resource_filename(__name__, 'gpuKnnBF_kernel.cl')
+    kernelLocation = resource_filename(__name__, "gpuKnnBF_kernel.cl")
     kernelsource = open(kernelLocation).read()
     program = cl.Program(context, kernelsource).build()
     kernelKNNshared = program.kernelKNNshared
-    kernelKNNshared.set_scalar_arg_dtypes([None, None, None, None, np.int32,
-                                           np.int32, np.int32, np.int32,
-                                           np.int32, None, None])
+    kernelKNNshared.set_scalar_arg_dtypes(
+        [
+            None,
+            None,
+            None,
+            None,
+            np.int32,
+            np.int32,
+            np.int32,
+            np.int32,
+            np.int32,
+            None,
+            None,
+        ]
+    )
 
     # Size of workitems and NDRange
-    if signallength/nchunks < my_gpu_devices[gpuid].max_work_group_size:
+    if signallength / nchunks < my_gpu_devices[gpuid].max_work_group_size:
         workitems_x = 8
     elif my_gpu_devices[gpuid].max_work_group_size < 256:
         workitems_x = my_gpu_devices[gpuid].max_work_group_size
@@ -257,26 +307,41 @@ def clFindKnn(h_bf_indexes, h_bf_distances, h_pointset, h_query, kth, thelier,
         workitems_x = 256
 
     if signallength % workitems_x != 0:
-        temp = int(round(((signallength)/workitems_x), 0) + 1)
+        temp = int(round(((signallength) / workitems_x), 0) + 1)
     else:
-        temp = int(signallength/workitems_x)
+        temp = int(signallength / workitems_x)
 
     NDRange_x = workitems_x * temp
 
     # Local memory for distances and indexes
-    localmem = (np.dtype(np.float32).itemsize*kth*workitems_x +
-                np.dtype(np.int32).itemsize*kth*workitems_x) / 1024
+    localmem = (
+        np.dtype(np.float32).itemsize * kth * workitems_x
+        + np.dtype(np.int32).itemsize * kth * workitems_x
+    ) / 1024
     if localmem > my_gpu_devices[gpuid].local_mem_size / 1024:
-        print('Localmem alocation will fail. {0} kb available, and it needs '
-              '{1} kb.'.format(my_gpu_devices[gpuid].local_mem_size/1024,
-                               localmem))
-    localmem1 = cl.LocalMemory(np.dtype(np.float32).itemsize*kth*workitems_x)
-    localmem2 = cl.LocalMemory(np.dtype(np.int32).itemsize*kth*workitems_x)
+        print(
+            "Localmem alocation will fail. {0} kb available, and it needs "
+            "{1} kb.".format(my_gpu_devices[gpuid].local_mem_size / 1024, localmem)
+        )
+    localmem1 = cl.LocalMemory(np.dtype(np.float32).itemsize * kth * workitems_x)
+    localmem2 = cl.LocalMemory(np.dtype(np.int32).itemsize * kth * workitems_x)
 
-    kernelKNNshared(queue, (NDRange_x,), (workitems_x,), d_bf_query,
-                    d_bf_pointset, d_bf_indexes, d_bf_distances, pointdim,
-                    triallength, signallength, kth, thelier, localmem1,
-                    localmem2)
+    kernelKNNshared(
+        queue,
+        (NDRange_x,),
+        (workitems_x,),
+        d_bf_query,
+        d_bf_pointset,
+        d_bf_indexes,
+        d_bf_distances,
+        pointdim,
+        triallength,
+        signallength,
+        kth,
+        thelier,
+        localmem1,
+        localmem2,
+    )
     queue.finish()
 
     # Download results
@@ -292,13 +357,22 @@ def clFindKnn(h_bf_indexes, h_bf_distances, h_pointset, h_query, kth, thelier,
     return 1
 
 
-def clFindRSAll(h_bf_npointsrange, h_pointset, h_query, h_vecradius, thelier,
-                nchunks, pointdim, signallength, gpuid):
+def clFindRSAll(
+    h_bf_npointsrange,
+    h_pointset,
+    h_query,
+    h_vecradius,
+    thelier,
+    nchunks,
+    pointdim,
+    signallength,
+    gpuid,
+):
     """Perform range search on the GPU."""
     triallength = int(signallength / nchunks)
     # print 'Values:', pointdim, triallength, signallength, kth, thelier
 
-    '''
+    """
     for platform in cl.get_platforms():
         for device in platform.get_devices():
             print("===============================================================")
@@ -314,47 +388,57 @@ def clFindRSAll(h_bf_npointsrange, h_pointset, h_query, h_vecradius, thelier,
             print("Device compute units:", device.max_compute_units)
             print("Device max work group size:", device.max_work_group_size)
             print("Device max work item sizes:", device.max_work_item_sizes)
-    '''
+    """
 
     # Set up OpenCL
     my_gpu_devices, context, queue = _get_device(gpuid)
 
     # Check memory resources.
-    usedmem = int((h_query.nbytes + h_pointset.nbytes + h_vecradius.nbytes +
-                   h_bf_npointsrange.nbytes) // 1024 // 1024)
+    usedmem = int(
+        (
+            h_query.nbytes
+            + h_pointset.nbytes
+            + h_vecradius.nbytes
+            + h_bf_npointsrange.nbytes
+        )
+        // 1024
+        // 1024
+    )
     totalmem = int(my_gpu_devices[gpuid].global_mem_size // 1024 // 1024)
 
-    if (totalmem*0.90) < usedmem:
-        print('WARNING: {0} Mb used from a total of {1} Mb. GPU could get '
-              'without memory.'.format(usedmem, totalmem))
+    if (totalmem * 0.90) < usedmem:
+        print(
+            "WARNING: {0} Mb used from a total of {1} Mb. GPU could get "
+            "without memory.".format(usedmem, totalmem)
+        )
 
     # Create OpenCL buffers
-    d_bf_query = cl.Buffer(context,
-                           cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
-                           hostbuf=h_query)
+    d_bf_query = cl.Buffer(
+        context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR, hostbuf=h_query
+    )
     d_bf_pointset = cl.Buffer(
-                        context,
-                        cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
-                        hostbuf=h_pointset)
+        context, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR, hostbuf=h_pointset
+    )
     d_bf_vecradius = cl.Buffer(
-                           context,
-                           cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
-                           hostbuf=h_vecradius)
-    d_bf_npointsrange = cl.Buffer(context,
-                                  cl.mem_flags.READ_WRITE,
-                                  h_bf_npointsrange.nbytes)
+        context,
+        cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
+        hostbuf=h_vecradius,
+    )
+    d_bf_npointsrange = cl.Buffer(
+        context, cl.mem_flags.READ_WRITE, h_bf_npointsrange.nbytes
+    )
 
     # Kernel Launch
-    kernelLocation = resource_filename(__name__, 'gpuKnnBF_kernel.cl')
+    kernelLocation = resource_filename(__name__, "gpuKnnBF_kernel.cl")
     kernelsource = open(kernelLocation).read()
     program = cl.Program(context, kernelsource).build()
     kernelBFRSAllshared = program.kernelBFRSAllshared
-    kernelBFRSAllshared.set_scalar_arg_dtypes([None, None, None, None,
-                                               np.int32, np.int32, np.int32,
-                                               np.int32, None])
+    kernelBFRSAllshared.set_scalar_arg_dtypes(
+        [None, None, None, None, np.int32, np.int32, np.int32, np.int32, None]
+    )
 
     # Size of workitems and NDRange
-    if signallength/nchunks < my_gpu_devices[gpuid].max_work_group_size:
+    if signallength / nchunks < my_gpu_devices[gpuid].max_work_group_size:
         workitems_x = 8
     elif my_gpu_devices[gpuid].max_work_group_size < 256:
         workitems_x = my_gpu_devices[gpuid].max_work_group_size
@@ -362,19 +446,30 @@ def clFindRSAll(h_bf_npointsrange, h_pointset, h_query, h_vecradius, thelier,
         workitems_x = 256
 
     if signallength % workitems_x != 0:
-        temp = int(round(((signallength)/workitems_x), 0) + 1)
+        temp = int(round(((signallength) / workitems_x), 0) + 1)
     else:
-        temp = int(signallength/workitems_x)
+        temp = int(signallength / workitems_x)
 
     NDRange_x = workitems_x * temp
 
     # Local memory for rangesearch. Actually not used, better results with
     # private memory
-    localmem = cl.LocalMemory(np.dtype(np.int32).itemsize*workitems_x)
+    localmem = cl.LocalMemory(np.dtype(np.int32).itemsize * workitems_x)
 
-    kernelBFRSAllshared(queue, (NDRange_x,), (workitems_x,), d_bf_query,
-                        d_bf_pointset, d_bf_vecradius, d_bf_npointsrange,
-                        pointdim, triallength, signallength, thelier, localmem)
+    kernelBFRSAllshared(
+        queue,
+        (NDRange_x,),
+        (workitems_x,),
+        d_bf_query,
+        d_bf_pointset,
+        d_bf_vecradius,
+        d_bf_npointsrange,
+        pointdim,
+        triallength,
+        signallength,
+        thelier,
+        localmem,
+    )
     queue.finish()
 
     # Download results
@@ -397,16 +492,18 @@ def find_nonempty(a_list):
             break
         else:
             if VERBOSE:
-                print('found empty platform')
+                print("found empty platform")
 
     # if a_list[idx] == []:
     if not a_list[idx]:
-        print('all platforms empty')
+        print("all platforms empty")
     else:
         return idx
 
 
-def _get_max_chunks_per_run(gpuid, n_chunks, pointset, ar1, ar2): # TODO make this more generic, i.e., a variable number of arrays as input
+def _get_max_chunks_per_run(
+    gpuid, n_chunks, pointset, ar1, ar2
+):  # TODO make this more generic, i.e., a variable number of arrays as input
     """Calculate number of chunks per GPU run.
 
     Checks the global memory on the requested GPU device and the problem size,
@@ -448,27 +545,45 @@ def _get_max_chunks_per_run(gpuid, n_chunks, pointset, ar1, ar2): # TODO make th
     chunksize = int(pointset.shape[0] / n_chunks)
     total_mem = int(my_gpu_devices[gpuid].global_mem_size / 1024 / 1024)
     if len(ar2.shape) == 2:
-        mem_per_chunk = int(np.ceil((2 * pointset[:chunksize, :].nbytes +
-                                     ar1[:, :chunksize].nbytes +
-                                     ar2[:, :chunksize].nbytes) / 1024 / 1024))
+        mem_per_chunk = int(
+            np.ceil(
+                (
+                    2 * pointset[:chunksize, :].nbytes
+                    + ar1[:, :chunksize].nbytes
+                    + ar2[:, :chunksize].nbytes
+                )
+                / 1024
+                / 1024
+            )
+        )
     else:  # when testing this for range searches, the 2nd array is only one-dimensional TODO make this more elegant
-        mem_per_chunk = int(np.ceil((2 * pointset[:chunksize, :].nbytes +
-                                     ar1[:chunksize].nbytes +
-                                     ar2[:chunksize].nbytes) / 1024 / 1024))
+        mem_per_chunk = int(
+            np.ceil(
+                (
+                    2 * pointset[:chunksize, :].nbytes
+                    + ar1[:chunksize].nbytes
+                    + ar2[:chunksize].nbytes
+                )
+                / 1024
+                / 1024
+            )
+        )
     if VERBOSE:
-        print('no. chunks: {0}, chunksize: {1} points, device global memory: '
-              '{2} MB, memory per chunk: {3} MB'.format(n_chunks,
-                                                        chunksize,
-                                                        total_mem,
-                                                        mem_per_chunk))
+        print(
+            "no. chunks: {0}, chunksize: {1} points, device global memory: "
+            "{2} MB, memory per chunk: {3} MB".format(
+                n_chunks, chunksize, total_mem, mem_per_chunk
+            )
+        )
     if mem_per_chunk > (total_mem * 0.90):
-        raise RuntimeError(('Size of single chunk exceeds GPU global memory. '
-                            'Reduce Problem size.'))
+        raise RuntimeError(
+            ("Size of single chunk exceeds GPU global memory. " "Reduce Problem size.")
+        )
     else:
         chunks_per_run = np.floor(total_mem * 0.90 / mem_per_chunk).astype(int)
 
     if VERBOSE:
-        print('max. allowed no. chunks per run is {0}.'.format(chunks_per_run))
+        print("max. allowed no. chunks per run is {0}.".format(chunks_per_run))
     return chunks_per_run
 
 
@@ -476,8 +591,7 @@ def _get_device(gpuid):
     """Return GPU devices, context, and queue."""
     platform = cl.get_platforms()
     platf_idx = find_nonempty(platform)
-    my_gpu_devices = platform[platf_idx].get_devices(
-                                                device_type=cl.device_type.GPU)
+    my_gpu_devices = platform[platf_idx].get_devices(device_type=cl.device_type.GPU)
     context = cl.Context(devices=my_gpu_devices)
     queue = cl.CommandQueue(context, my_gpu_devices[gpuid])
     if VERBOSE:

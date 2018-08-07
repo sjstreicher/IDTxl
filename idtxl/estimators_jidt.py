@@ -5,12 +5,16 @@ from abc import abstractmethod
 from idtxl.estimator import Estimator
 from . import idtxl_exceptions as ex
 from . import idtxl_utils as utils
+
 try:
     import jpype as jp
 except ImportError as err:
-    ex.package_missing(err, 'Jpype is not available on this system. Install it'
-                            ' from https://pypi.python.org/pypi/JPype1 to use '
-                            'JAVA/JIDT-powered CMI estimation.')
+    ex.package_missing(
+        err,
+        "Jpype is not available on this system. Install it"
+        " from https://pypi.python.org/pypi/JPype1 to use "
+        "JAVA/JIDT-powered CMI estimation.",
+    )
 
 
 class JidtEstimator(Estimator):
@@ -51,37 +55,41 @@ class JidtEstimator(Estimator):
     def __init__(self, settings=None):
         """Set default estimator settings."""
         settings = self._check_settings(settings)
-        settings.setdefault('local_values', False)
-        settings.setdefault('debug', False)
+        settings.setdefault("local_values", False)
+        settings.setdefault("debug", False)
         self.settings = settings
 
     def _start_jvm(self):
         """Start JAVA virtual machine if it is not running."""
-        jar_location = resource_filename(__name__, 'infodynamics.jar')
+        jar_location = resource_filename(__name__, "infodynamics.jar")
         if not jp.isJVMStarted():
-            jp.startJVM(jp.getDefaultJVMPath(), '-ea', ('-Djava.class.path=' +
-                                                        jar_location))
+            jp.startJVM(
+                jp.getDefaultJVMPath(), "-ea", ("-Djava.class.path=" + jar_location)
+            )
 
     def _set_te_defaults(self):
         """Set defaults for transfer entropy estimation."""
         try:
-            history_target = self.settings['history_target']
+            history_target = self.settings["history_target"]
         except KeyError:
-            raise RuntimeError('No target history was provided for TE '
-                               'estimation.')
-        self.settings.setdefault('history_source', history_target)
-        self.settings.setdefault('tau_target', 1)
-        self.settings.setdefault('tau_source', 1)
-        self.settings.setdefault('source_target_delay', 1)
+            raise RuntimeError("No target history was provided for TE " "estimation.")
+        self.settings.setdefault("history_source", history_target)
+        self.settings.setdefault("tau_target", 1)
+        self.settings.setdefault("tau_source", 1)
+        self.settings.setdefault("source_target_delay", 1)
 
-        assert type(self.settings['tau_target']) is int, (
-            'Target tau has to be an integer.')
-        assert type(self.settings['tau_source']) is int, (
-            'Source tau has to be an integer.')
-        assert type(self.settings['history_target']) is int, (
-            'Target history has to be an integer.')
-        assert type(self.settings['history_source']) is int, (
-            'Source history has to be an integer.')
+        assert (
+            type(self.settings["tau_target"]) is int
+        ), "Target tau has to be an integer."
+        assert (
+            type(self.settings["tau_source"]) is int
+        ), "Source tau has to be an integer."
+        assert (
+            type(self.settings["history_target"]) is int
+        ), "Target history has to be an integer."
+        assert (
+            type(self.settings["history_source"]) is int
+        ), "Source history has to be an integer."
 
     def is_parallel(self):
         return False
@@ -125,23 +133,21 @@ class JidtKraskov(JidtEstimator):
 
         # Set default estimator settings.
         super().__init__(settings)
-        self.settings.setdefault('kraskov_k', str(4))
-        self.settings.setdefault('normalise', 'false')
-        self.settings.setdefault('theiler_t', str(0))
-        self.settings.setdefault('noise_level', 1e-8)
-        self.settings.setdefault('num_threads', 'USE_ALL')
+        self.settings.setdefault("kraskov_k", str(4))
+        self.settings.setdefault("normalise", "false")
+        self.settings.setdefault("theiler_t", str(0))
+        self.settings.setdefault("noise_level", 1e-8)
+        self.settings.setdefault("num_threads", "USE_ALL")
 
         # Set properties of JIDT's estimator object.
         self.calc = CalcClass()
-        self.calc.setProperty('PROP_KRASKOV_ALG_NUM', str(1))
-        self.calc.setProperty('NORMALISE',
-                              str(self.settings['normalise']).lower())
-        self.calc.setProperty('k', str(self.settings['kraskov_k']))
-        self.calc.setProperty('DYN_CORR_EXCL', str(self.settings['theiler_t']))
-        self.calc.setProperty('NOISE_LEVEL_TO_ADD',
-                              str(self.settings['noise_level']))
-        self.calc.setProperty('NUM_THREADS', str(self.settings['num_threads']))
-        self.calc.setDebug(self.settings['debug'])
+        self.calc.setProperty("PROP_KRASKOV_ALG_NUM", str(1))
+        self.calc.setProperty("NORMALISE", str(self.settings["normalise"]).lower())
+        self.calc.setProperty("k", str(self.settings["kraskov_k"]))
+        self.calc.setProperty("DYN_CORR_EXCL", str(self.settings["theiler_t"]))
+        self.calc.setProperty("NOISE_LEVEL_TO_ADD", str(self.settings["noise_level"]))
+        self.calc.setProperty("NUM_THREADS", str(self.settings["num_threads"]))
+        self.calc.setDebug(self.settings["debug"])
 
     def is_analytic_null_estimator(self):
         return False
@@ -181,48 +187,55 @@ class JidtDiscrete(JidtEstimator):
 
     def __init__(self, settings):
         super().__init__(settings)
-        self.settings.setdefault('discretise_method', 'none')
+        self.settings.setdefault("discretise_method", "none")
 
     def _discretise_vars(self, var1, var2, conditional=None):
         # Discretise variables if requested. Otherwise assert data are discrete
         # and provided alphabet sizes are correct.
-        if self.settings['discretise_method'] == 'equal':
-            var1 = utils.discretise(var1, self.settings['alph1'])
-            var2 = utils.discretise(var2, self.settings['alph2'])
+        if self.settings["discretise_method"] == "equal":
+            var1 = utils.discretise(var1, self.settings["alph1"])
+            var2 = utils.discretise(var2, self.settings["alph2"])
             if conditional is not None:
-                conditional = utils.discretise(conditional,
-                                               self.settings['alphc'])
+                conditional = utils.discretise(conditional, self.settings["alphc"])
 
-        elif self.settings['discretise_method'] == 'max_ent':
-            var1 = utils.discretise_max_ent(var1, self.settings['alph1'])
-            var2 = utils.discretise_max_ent(var2, self.settings['alph2'])
+        elif self.settings["discretise_method"] == "max_ent":
+            var1 = utils.discretise_max_ent(var1, self.settings["alph1"])
+            var2 = utils.discretise_max_ent(var2, self.settings["alph2"])
             if not (conditional is None):
-                conditional = utils.discretise_max_ent(conditional,
-                                                       self.settings['alphc'])
+                conditional = utils.discretise_max_ent(
+                    conditional, self.settings["alphc"]
+                )
 
-        elif self.settings['discretise_method'] == 'none':
+        elif self.settings["discretise_method"] == "none":
             assert issubclass(var1.dtype.type, np.integer), (
-                'Var1 is not an integer numpy array. '
-                'Discretise data to use this estimator.')
+                "Var1 is not an integer numpy array. "
+                "Discretise data to use this estimator."
+            )
             assert issubclass(var2.dtype.type, np.integer), (
-                'Var2 is not an integer numpy array. '
-                'Discretise data to use this estimator.')
-            assert np.min(var1) >= 0, 'Minimum of var1 is smaller than 0.'
-            assert np.min(var2) >= 0, 'Minimum of var2 is smaller than 0.'
-            assert np.max(var1) < self.settings['alph1'], (
-                        'Maximum of var1 is larger than the alphabet size.')
-            assert np.max(var2) < self.settings['alph2'], (
-                        'Maximum of var2 is larger than the alphabet size.')
+                "Var2 is not an integer numpy array. "
+                "Discretise data to use this estimator."
+            )
+            assert np.min(var1) >= 0, "Minimum of var1 is smaller than 0."
+            assert np.min(var2) >= 0, "Minimum of var2 is smaller than 0."
+            assert (
+                np.max(var1) < self.settings["alph1"]
+            ), "Maximum of var1 is larger than the alphabet size."
+            assert (
+                np.max(var2) < self.settings["alph2"]
+            ), "Maximum of var2 is larger than the alphabet size."
             if conditional is not None:
-                assert np.min(conditional) >= 0, (
-                        'Minimum of conditional is smaller than 0.')
+                assert (
+                    np.min(conditional) >= 0
+                ), "Minimum of conditional is smaller than 0."
                 assert issubclass(conditional.dtype.type, np.integer), (
-                    'Conditional is not an integer numpy array. '
-                    'Discretise data to use this estimator.')
-                assert np.max(conditional) < self.settings['alphc'], (
-                    'Maximum of conditional is larger than the alphabet size.')
+                    "Conditional is not an integer numpy array. "
+                    "Discretise data to use this estimator."
+                )
+                assert (
+                    np.max(conditional) < self.settings["alphc"]
+                ), "Maximum of conditional is larger than the alphabet size."
         else:
-            raise ValueError('Unkown discretisation method.')
+            raise ValueError("Unkown discretisation method.")
 
         if conditional is not None:
             return var1, var2, conditional
@@ -302,7 +315,7 @@ class JidtGaussian(JidtEstimator):
     def __init__(self, CalcClass, settings):
         super().__init__(settings)
         self.calc = CalcClass()
-        self.calc.setDebug(self.settings['debug'])
+        self.calc.setDebug(self.settings["debug"])
 
     def is_analytic_null_estimator(self):
         return True
@@ -389,8 +402,9 @@ class JidtKraskovCMI(JidtKraskov):
     def __init__(self, settings=None):
         # Start JAVA virtual machine and create JAVA object.
         self._start_jvm()
-        CalcClass = (jp.JPackage('infodynamics.measures.continuous.kraskov').
-                     ConditionalMutualInfoCalculatorMultiVariateKraskov1)
+        CalcClass = jp.JPackage(
+            "infodynamics.measures.continuous.kraskov"
+        ).ConditionalMutualInfoCalculatorMultiVariateKraskov1
         super().__init__(CalcClass, settings)
 
     def estimate(self, var1, var2, conditional=None):
@@ -417,26 +431,30 @@ class JidtKraskovCMI(JidtKraskov):
             est_mi = JidtKraskovMI(self.settings)
             return est_mi.estimate(var1, var2)
         else:
-            assert(conditional.size != 0), 'Conditional Array is empty.'
+            assert conditional.size != 0, "Conditional Array is empty."
 
         # Check if variable realisations are passed as 1D or 2D arrays and have
         # equal no. observations.
         var1 = self._ensure_two_dim_input(var1)
         var2 = self._ensure_two_dim_input(var2)
         cond = self._ensure_two_dim_input(conditional)
-        assert(var1.shape[0] == var2.shape[0]), (
-            'Unequal number of observations (var1: {0}, var2: {1}).'.format(
-                var1.shape[0], var2.shape[0]))
-        assert(var1.shape[0] == cond.shape[0]), (
-            'Unequal number of observations (var1: {0}, cond: {1}).'.format(
-                var1.shape[0], cond.shape[0]))
+        assert (
+            var1.shape[0] == var2.shape[0]
+        ), "Unequal number of observations (var1: {0}, var2: {1}).".format(
+            var1.shape[0], var2.shape[0]
+        )
+        assert (
+            var1.shape[0] == cond.shape[0]
+        ), "Unequal number of observations (var1: {0}, cond: {1}).".format(
+            var1.shape[0], cond.shape[0]
+        )
 
         # Check if number of points is sufficient for estimation.
         self._check_number_of_points(var1.shape[0])
 
         self.calc.initialise(var1.shape[1], var2.shape[1], cond.shape[1])
         self.calc.setObservations(var1, var2, cond)
-        if self.settings['local_values']:
+        if self.settings["local_values"]:
             return np.array(self.calc.computeLocalOfPreviousObservations())
         else:
             return self.calc.computeAverageLocalOfObservations()
@@ -479,22 +497,23 @@ class JidtDiscreteCMI(JidtDiscrete):
         # binary variables.
         super().__init__(settings)
         try:
-            n_discrete_bins = int(self.settings['n_discrete_bins'])
-            self.settings['alph1'] = n_discrete_bins
-            self.settings['alph2'] = n_discrete_bins
-            self.settings['alphc'] = n_discrete_bins
+            n_discrete_bins = int(self.settings["n_discrete_bins"])
+            self.settings["alph1"] = n_discrete_bins
+            self.settings["alph2"] = n_discrete_bins
+            self.settings["alphc"] = n_discrete_bins
         except KeyError:
             pass  # Do nothing and use the default for alph_* set below
-        self.settings.setdefault('alph1', int(2))
-        self.settings.setdefault('alph2', int(2))
-        self.settings.setdefault('alphc', int(2))
+        self.settings.setdefault("alph1", int(2))
+        self.settings.setdefault("alph2", int(2))
+        self.settings.setdefault("alphc", int(2))
 
         # Start JAVA virtual machine and create JAVA object. Add JAVA object to
         # instance, the discrete estimator requires the variable dimensions
         # upon instantiation.
         self._start_jvm()
-        self.CalcClass = (jp.JPackage('infodynamics.measures.discrete').
-                          ConditionalMutualInformationCalculatorDiscrete)
+        self.CalcClass = jp.JPackage(
+            "infodynamics.measures.discrete"
+        ).ConditionalMutualInformationCalculatorDiscrete
 
     def estimate(self, var1, var2, conditional=None, return_calc=False):
         """Estimate conditional mutual information.
@@ -524,13 +543,13 @@ class JidtDiscreteCMI(JidtDiscrete):
 
         """
         # Calculate an MI if no conditional was provided
-        if (conditional is None) or (self.settings['alphc'] == 0):
+        if (conditional is None) or (self.settings["alphc"] == 0):
             est = JidtDiscreteMI(self.settings)
             # Return value will be just the estimate if return_calc is False,
             #  or estimate plus the JIDT MI calculator if return_calc is True:
             return est.estimate(var1, var2, return_calc)
         else:
-            assert(conditional.size != 0), 'Conditional Array is empty.'
+            assert conditional.size != 0, "Conditional Array is empty."
 
         # Check and remember the no. dimensions for each variable before
         # collapsing them into univariate arrays later.
@@ -542,33 +561,39 @@ class JidtDiscreteCMI(JidtDiscrete):
         cond_dim = conditional.shape[1]
 
         # Discretise if requested.
-        var1, var2, conditional = self._discretise_vars(var1, var2,
-                                                        conditional)
+        var1, var2, conditional = self._discretise_vars(var1, var2, conditional)
 
         # Then collapse any mulitvariates into univariate arrays:
-        var1 = utils.combine_discrete_dimensions(var1, self.settings['alph1'])
-        var2 = utils.combine_discrete_dimensions(var2, self.settings['alph2'])
-        conditional = utils.combine_discrete_dimensions(conditional,
-                                                        self.settings['alphc'])
+        var1 = utils.combine_discrete_dimensions(var1, self.settings["alph1"])
+        var2 = utils.combine_discrete_dimensions(var2, self.settings["alph2"])
+        conditional = utils.combine_discrete_dimensions(
+            conditional, self.settings["alphc"]
+        )
 
         # We have a non-trivial conditional, so make a proper conditional MI
         # calculation
-        calc = self.CalcClass(int(np.power(self.settings['alph1'], var1_dim)),
-                              int(np.power(self.settings['alph2'], var2_dim)),
-                              int(np.power(self.settings['alphc'], cond_dim)))
-        calc.setDebug(self.settings['debug'])
+        calc = self.CalcClass(
+            int(np.power(self.settings["alph1"], var1_dim)),
+            int(np.power(self.settings["alph2"], var2_dim)),
+            int(np.power(self.settings["alphc"], cond_dim)),
+        )
+        calc.setDebug(self.settings["debug"])
         calc.initialise()
         # Unfortunately no faster way to pass numpy arrays in than this list
         # conversion
-        calc.addObservations(jp.JArray(jp.JInt, 1)(var1.tolist()),
-                             jp.JArray(jp.JInt, 1)(var2.tolist()),
-                             jp.JArray(jp.JInt, 1)(conditional.tolist()))
-        if self.settings['local_values']:
-            result = np.array(calc.computeLocalFromPreviousObservations(
-                jp.JArray(jp.JInt, 1)(var1.tolist()),
-                jp.JArray(jp.JInt, 1)(var2.tolist()),
-                jp.JArray(jp.JInt, 1)(conditional.tolist())
-                ))
+        calc.addObservations(
+            jp.JArray(jp.JInt, 1)(var1.tolist()),
+            jp.JArray(jp.JInt, 1)(var2.tolist()),
+            jp.JArray(jp.JInt, 1)(conditional.tolist()),
+        )
+        if self.settings["local_values"]:
+            result = np.array(
+                calc.computeLocalFromPreviousObservations(
+                    jp.JArray(jp.JInt, 1)(var1.tolist()),
+                    jp.JArray(jp.JInt, 1)(var2.tolist()),
+                    jp.JArray(jp.JInt, 1)(conditional.tolist()),
+                )
+            )
         else:
             result = calc.computeAverageLocalOfObservations()
         if return_calc:
@@ -639,22 +664,23 @@ class JidtDiscreteMI(JidtDiscrete):
         # number of bins for discretisation if provided, otherwise assume
         # binary variables.
         super().__init__(settings)
-        self.settings.setdefault('lag_mi', int(0))
+        self.settings.setdefault("lag_mi", int(0))
         try:
-            n_discrete_bins = int(self.settings['n_discrete_bins'])
-            self.settings['alph1'] = n_discrete_bins
-            self.settings['alph2'] = n_discrete_bins
+            n_discrete_bins = int(self.settings["n_discrete_bins"])
+            self.settings["alph1"] = n_discrete_bins
+            self.settings["alph2"] = n_discrete_bins
         except KeyError:
             pass  # Do nothing and use the default for alph_* set below
-        self.settings.setdefault('alph1', int(2))
-        self.settings.setdefault('alph2', int(2))
+        self.settings.setdefault("alph1", int(2))
+        self.settings.setdefault("alph2", int(2))
 
         # Start JAVA virtual machine and create JAVA object. Add JAVA object to
         # instance, the discrete estimator requires the variable dimensions
         # upon instantiation.
         self._start_jvm()
-        self.CalcClass = (jp.JPackage('infodynamics.measures.discrete').
-                          MutualInformationCalculatorDiscrete)
+        self.CalcClass = jp.JPackage(
+            "infodynamics.measures.discrete"
+        ).MutualInformationCalculatorDiscrete
 
     def estimate(self, var1, var2, return_calc=False):
         """Estimate mutual information.
@@ -690,24 +716,32 @@ class JidtDiscreteMI(JidtDiscrete):
         var1, var2 = self._discretise_vars(var1, var2)
 
         # Then collapse any mulitvariates into univariate arrays:
-        var1 = utils.combine_discrete_dimensions(var1, self.settings['alph1'])
-        var2 = utils.combine_discrete_dimensions(var2, self.settings['alph2'])
+        var1 = utils.combine_discrete_dimensions(var1, self.settings["alph1"])
+        var2 = utils.combine_discrete_dimensions(var2, self.settings["alph2"])
 
         # Initialise estimator
-        max_base = int(max(np.power(self.settings['alph1'], var1_dim),
-                           np.power(self.settings['alph2'], var2_dim)))
-        calc = self.CalcClass(max_base, self.settings['lag_mi'])
-        calc.setDebug(self.settings['debug'])
+        max_base = int(
+            max(
+                np.power(self.settings["alph1"], var1_dim),
+                np.power(self.settings["alph2"], var2_dim),
+            )
+        )
+        calc = self.CalcClass(max_base, self.settings["lag_mi"])
+        calc.setDebug(self.settings["debug"])
         calc.initialise()
 
         # Unfortunately no faster way to pass numpy arrays in than this list
         # conversion
-        calc.addObservations(jp.JArray(jp.JInt, 1)(var1.tolist()),
-                             jp.JArray(jp.JInt, 1)(var2.tolist()))
-        if self.settings['local_values']:
-            result = np.array(calc.computeLocalFromPreviousObservations(
-                jp.JArray(jp.JInt, 1)(var1.tolist()),
-                jp.JArray(jp.JInt, 1)(var2.tolist())))
+        calc.addObservations(
+            jp.JArray(jp.JInt, 1)(var1.tolist()), jp.JArray(jp.JInt, 1)(var2.tolist())
+        )
+        if self.settings["local_values"]:
+            result = np.array(
+                calc.computeLocalFromPreviousObservations(
+                    jp.JArray(jp.JInt, 1)(var1.tolist()),
+                    jp.JArray(jp.JInt, 1)(var2.tolist()),
+                )
+            )
         else:
             result = calc.computeAverageLocalOfObservations()
         if return_calc:
@@ -778,12 +812,13 @@ class JidtKraskovMI(JidtKraskov):
     def __init__(self, settings=None):
         # Start JAVA virtual machine and create JAVA object.
         self._start_jvm()
-        CalcClass = (jp.JPackage('infodynamics.measures.continuous.kraskov').
-                     MutualInfoCalculatorMultiVariateKraskov1)
+        CalcClass = jp.JPackage(
+            "infodynamics.measures.continuous.kraskov"
+        ).MutualInfoCalculatorMultiVariateKraskov1
         super().__init__(CalcClass, settings)
 
         # Get lag and shift second variable to account for a lag if requested
-        self.settings.setdefault('lag_mi', 0)
+        self.settings.setdefault("lag_mi", 0)
 
     def estimate(self, var1, var2):
         """Estimate mutual information.
@@ -806,9 +841,9 @@ class JidtKraskovMI(JidtKraskov):
         var2 = self._ensure_two_dim_input(var2)
 
         # Shift variables to calculate a lagged MI.
-        if self.settings['lag_mi'] > 0:
-            var1 = var1[:-self.settings['lag_mi'], :]
-            var2 = var2[self.settings['lag_mi']:, :]
+        if self.settings["lag_mi"] > 0:
+            var1 = var1[: -self.settings["lag_mi"], :]
+            var2 = var2[self.settings["lag_mi"] :, :]
 
         # Check if number of points is sufficient for estimation.
         self._check_number_of_points(var1.shape[0])
@@ -816,7 +851,7 @@ class JidtKraskovMI(JidtKraskov):
         self.calc.initialise(var1.shape[1], var2.shape[1])
         self.calc.setObservations(var1, var2)
 
-        if self.settings['local_values']:
+        if self.settings["local_values"]:
             return np.array(self.calc.computeLocalOfPreviousObservations())
         else:
             return self.calc.computeAverageLocalOfObservations()
@@ -870,20 +905,20 @@ class JidtKraskovAIS(JidtKraskov):
     def __init__(self, settings):
         # Check for history for AIS estimation.
         if type(settings) is not dict:
-            raise TypeError('settings should be a dictionary.')
+            raise TypeError("settings should be a dictionary.")
         try:
-            settings['history']
+            settings["history"]
         except KeyError:
-            raise RuntimeError('No history was provided for AIS estimation.')
-        settings.setdefault('tau', 1)
-        assert type(settings['history']) is int, (
-                                            'History has to be an integer.')
-        assert type(settings['tau']) is int, ('Tau has to be an integer.')
+            raise RuntimeError("No history was provided for AIS estimation.")
+        settings.setdefault("tau", 1)
+        assert type(settings["history"]) is int, "History has to be an integer."
+        assert type(settings["tau"]) is int, "Tau has to be an integer."
 
         # Start JAVA virtual machine and create JAVA object.
         self._start_jvm()
-        CalcClass = (jp.JPackage('infodynamics.measures.continuous.kraskov').
-                     ActiveInfoStorageCalculatorKraskov)
+        CalcClass = jp.JPackage(
+            "infodynamics.measures.continuous.kraskov"
+        ).ActiveInfoStorageCalculatorKraskov
         super().__init__(CalcClass, settings)
 
     def estimate(self, process):
@@ -905,9 +940,9 @@ class JidtKraskovAIS(JidtKraskov):
         # Check if number of points is sufficient for estimation.
         self._check_number_of_points(process.shape[0])
 
-        self.calc.initialise(self.settings['history'], self.settings['tau'])
+        self.calc.initialise(self.settings["history"], self.settings["tau"])
         self.calc.setObservations(process)
-        if self.settings['local_values']:
+        if self.settings["local_values"]:
             return np.array(self.calc.computeLocalOfPreviousObservations())
         else:
             return self.calc.computeAverageLocalOfObservations()
@@ -942,26 +977,26 @@ class JidtDiscreteAIS(JidtDiscrete):
 
     def __init__(self, settings):
         if type(settings) is not dict:
-            raise TypeError('settings should be a dictionary.')
+            raise TypeError("settings should be a dictionary.")
         try:
-            settings['history']
+            settings["history"]
         except KeyError:
-            raise RuntimeError('No history was provided for AIS estimation.')
-        assert type(settings['history']) is int, (
-                                            'History has to be an integer.')
+            raise RuntimeError("No history was provided for AIS estimation.")
+        assert type(settings["history"]) is int, "History has to be an integer."
 
         # Get alphabet sizes and check if discretisation is requested
         try:
-            n_discrete_bins = int(settings['n_discrete_bins'])
-            settings['alph'] = n_discrete_bins
+            n_discrete_bins = int(settings["n_discrete_bins"])
+            settings["alph"] = n_discrete_bins
         except KeyError:
             pass  # Do nothing and use the default for alph_* set below
-        settings.setdefault('alph', int(2))
+        settings.setdefault("alph", int(2))
 
         # Start JAVA virtual machine and create JAVA object.
         self._start_jvm()
-        self.CalcClass = (jp.JPackage('infodynamics.measures.discrete').
-                          ActiveInformationCalculatorDiscrete)
+        self.CalcClass = jp.JPackage(
+            "infodynamics.measures.discrete"
+        ).ActiveInformationCalculatorDiscrete
         super().__init__(settings)
 
     def estimate(self, process, return_calc=False):
@@ -988,32 +1023,40 @@ class JidtDiscreteAIS(JidtDiscrete):
         process = self._ensure_one_dim_input(process)
 
         # Now discretise if required
-        if self.settings['discretise_method'] == 'none':
+        if self.settings["discretise_method"] == "none":
             assert issubclass(process.dtype.type, np.integer), (
-                'Process is not an integer numpy array. '
-                'Discretise data to use this estimator.')
-            assert min(process) >= 0, 'Minimum of process is smaller than 0.'
-            assert max(process) < self.settings['alph'], (
-                'Maximum of process is larger than the alphabet size.')
-            if self.settings['alph'] < np.unique(process).shape[0]:
-                raise RuntimeError('The process'' alphabet size does not match'
-                                   ' the no. unique elements in the process.')
-        elif self.settings['discretise_method'] == 'equal':
-            process = utils.discretise(process, self.settings['alph'])
-        elif self.settings['discretise_method'] == 'max_ent':
-            process = utils.discretise_max_ent(process, self.settings['alph'])
+                "Process is not an integer numpy array. "
+                "Discretise data to use this estimator."
+            )
+            assert min(process) >= 0, "Minimum of process is smaller than 0."
+            assert (
+                max(process) < self.settings["alph"]
+            ), "Maximum of process is larger than the alphabet size."
+            if self.settings["alph"] < np.unique(process).shape[0]:
+                raise RuntimeError(
+                    "The process"
+                    " alphabet size does not match"
+                    " the no. unique elements in the process."
+                )
+        elif self.settings["discretise_method"] == "equal":
+            process = utils.discretise(process, self.settings["alph"])
+        elif self.settings["discretise_method"] == "max_ent":
+            process = utils.discretise_max_ent(process, self.settings["alph"])
         else:
             pass  # don't discretise at all, assume data to be discrete
 
         # And finally make the TE calculation:
-        calc = self.CalcClass(self.settings['alph'], self.settings['history'])
+        calc = self.CalcClass(self.settings["alph"], self.settings["history"])
         calc.initialise()
         # Unfortunately no faster way to pass numpy arrays in than this list
         # conversion
         calc.addObservations(jp.JArray(jp.JInt, 1)(process.tolist()))
-        if self.settings['local_values']:
-            result = np.array(calc.computeLocalFromPreviousObservations(
-                                    jp.JArray(jp.JInt, 1)(process.tolist())))
+        if self.settings["local_values"]:
+            result = np.array(
+                calc.computeLocalFromPreviousObservations(
+                    jp.JArray(jp.JInt, 1)(process.tolist())
+                )
+            )
         else:
             result = calc.computeAverageLocalOfObservations()
         if return_calc:
@@ -1082,20 +1125,20 @@ class JidtGaussianAIS(JidtGaussian):
     def __init__(self, settings):
         # Check for history for AIS estimation.
         if type(settings) is not dict:
-            raise TypeError('settings should be a dictionary.')
+            raise TypeError("settings should be a dictionary.")
         try:
-            settings['history']
+            settings["history"]
         except KeyError:
-            raise RuntimeError('No history was provided for AIS estimation.')
-        settings.setdefault('tau', 1)
-        assert type(settings['history']) is int, (
-                                            'History has to be an integer.')
-        assert type(settings['tau']) is int, ('Tau has to be an integer.')
+            raise RuntimeError("No history was provided for AIS estimation.")
+        settings.setdefault("tau", 1)
+        assert type(settings["history"]) is int, "History has to be an integer."
+        assert type(settings["tau"]) is int, "Tau has to be an integer."
 
         # Start JAVA virtual machine and create JAVA object.
         self._start_jvm()
-        CalcClass = (jp.JPackage('infodynamics.measures.continuous.gaussian').
-                     ActiveInfoStorageCalculatorGaussian)
+        CalcClass = jp.JPackage(
+            "infodynamics.measures.continuous.gaussian"
+        ).ActiveInfoStorageCalculatorGaussian
         super().__init__(CalcClass, settings)
 
     def estimate(self, process):
@@ -1114,9 +1157,9 @@ class JidtGaussianAIS(JidtGaussian):
         """
         process = self._ensure_one_dim_input(process)
 
-        self.calc.initialise(self.settings['history'], self.settings['tau'])
+        self.calc.initialise(self.settings["history"], self.settings["tau"])
         self.calc.setObservations(process)
-        if self.settings['local_values']:
+        if self.settings["local_values"]:
             return np.array(self.calc.computeLocalOfPreviousObservations())
         else:
             return self.calc.computeAverageLocalOfObservations()
@@ -1150,13 +1193,14 @@ class JidtGaussianMI(JidtGaussian):
     def __init__(self, settings=None):
         # Start JAVA virtual machine and create JAVA object.
         self._start_jvm()
-        CalcClass = (jp.JPackage('infodynamics.measures.continuous.gaussian').
-                     MutualInfoCalculatorMultiVariateGaussian)
+        CalcClass = jp.JPackage(
+            "infodynamics.measures.continuous.gaussian"
+        ).MutualInfoCalculatorMultiVariateGaussian
         super().__init__(CalcClass, settings)
 
         # Add lag between input variables. Setting the lag in JIDT didn't work,
         # shift variables when calling the estimate method instead.
-        self.settings.setdefault('lag_mi', int(0))
+        self.settings.setdefault("lag_mi", int(0))
         # self.calc.setProperty('PROP_TIME_DIFF', str(self.settings['lag_mi']))
 
     def estimate(self, var1, var2):
@@ -1179,13 +1223,13 @@ class JidtGaussianMI(JidtGaussian):
         var2 = self._ensure_two_dim_input(var2)
 
         # Shift variables to calculate a lagged MI.
-        if self.settings['lag_mi'] > 0:
-            var1 = var1[:-self.settings['lag_mi'], :]
-            var2 = var2[self.settings['lag_mi']:, :]
+        if self.settings["lag_mi"] > 0:
+            var1 = var1[: -self.settings["lag_mi"], :]
+            var2 = var2[self.settings["lag_mi"] :, :]
 
         self.calc.initialise(var1.shape[1], var2.shape[1])
         self.calc.setObservations(var1, var2)
-        if self.settings['local_values']:
+        if self.settings["local_values"]:
             return np.array(self.calc.computeLocalOfPreviousObservations())
         else:
             return self.calc.computeAverageLocalOfObservations()
@@ -1225,8 +1269,9 @@ class JidtGaussianCMI(JidtGaussian):
     def __init__(self, settings=None):
         # Start JAVA virtual machine and create JAVA object.
         self._start_jvm()
-        CalcClass = (jp.JPackage('infodynamics.measures.continuous.gaussian').
-                     ConditionalMutualInfoCalculatorMultiVariateGaussian)
+        CalcClass = jp.JPackage(
+            "infodynamics.measures.continuous.gaussian"
+        ).ConditionalMutualInfoCalculatorMultiVariateGaussian
         super().__init__(CalcClass, settings)
         self.est_mi = None
 
@@ -1251,26 +1296,30 @@ class JidtGaussianCMI(JidtGaussian):
         """
         # Return MI if no conditioning variable was provided.
         if conditional is None:
-            if (self.est_mi is None):
+            if self.est_mi is None:
                 self.est_mi = JidtGaussianMI(self.settings)
             return self.est_mi.estimate(var1, var2)
         else:
-            assert(conditional.size != 0), 'Conditional Array is empty.'
+            assert conditional.size != 0, "Conditional Array is empty."
 
         var1 = self._ensure_two_dim_input(var1)
         var2 = self._ensure_two_dim_input(var2)
         cond = self._ensure_two_dim_input(conditional)
 
-        assert(var1.shape[0] == var2.shape[0]), (
-            'Unequal number of observations (var1: {0}, var2: {1}).'.format(
-                var1.shape[0], var2.shape[0]))
-        assert(var1.shape[0] == cond.shape[0]), (
-            'Unequal number of observations (var1: {0}, cond: {1}).'.format(
-                var1.shape[0], cond.shape[0]))
+        assert (
+            var1.shape[0] == var2.shape[0]
+        ), "Unequal number of observations (var1: {0}, var2: {1}).".format(
+            var1.shape[0], var2.shape[0]
+        )
+        assert (
+            var1.shape[0] == cond.shape[0]
+        ), "Unequal number of observations (var1: {0}, cond: {1}).".format(
+            var1.shape[0], cond.shape[0]
+        )
 
         self.calc.initialise(var1.shape[1], var2.shape[1], cond.shape[1])
         self.calc.setObservations(var1, var2, cond)
-        if self.settings['local_values']:
+        if self.settings["local_values"]:
             return np.array(self.calc.computeLocalOfPreviousObservations())
         else:
             return self.calc.computeAverageLocalOfObservations()
@@ -1299,7 +1348,7 @@ class JidtGaussianCMI(JidtGaussian):
         """
         # Make one estimate to prepare the calculator:
         self.estimate(var1, var2, conditional)
-        if (conditional is None):
+        if conditional is None:
             return self.est_mi.calc.computeSignificance()
         else:
             return self.calc.computeSignificance()
@@ -1352,8 +1401,9 @@ class JidtKraskovTE(JidtKraskov):
     def __init__(self, settings):
         # Start JAVA virtual machine.
         self._start_jvm()
-        CalcClass = (jp.JPackage('infodynamics.measures.continuous.kraskov').
-                     TransferEntropyCalculatorKraskov)
+        CalcClass = jp.JPackage(
+            "infodynamics.measures.continuous.kraskov"
+        ).TransferEntropyCalculatorKraskov
         super().__init__(CalcClass, settings)
 
         # Get embedding and delay parameters.
@@ -1379,16 +1429,19 @@ class JidtKraskovTE(JidtKraskov):
         target = self._ensure_one_dim_input(target)
 
         # Check if number of points is sufficient for estimation.
-        self._check_number_of_points(source.shape[0] -
-                                     self.settings['source_target_delay'])
+        self._check_number_of_points(
+            source.shape[0] - self.settings["source_target_delay"]
+        )
 
-        self.calc.initialise(self.settings['history_target'],
-                             self.settings['tau_target'],
-                             self.settings['history_source'],
-                             self.settings['tau_source'],
-                             self.settings['source_target_delay'])
+        self.calc.initialise(
+            self.settings["history_target"],
+            self.settings["tau_target"],
+            self.settings["history_source"],
+            self.settings["tau_source"],
+            self.settings["source_target_delay"],
+        )
         self.calc.setObservations(source, target)
-        if self.settings['local_values']:
+        if self.settings["local_values"]:
             return np.array(self.calc.computeLocalOfPreviousObservations())
         else:
             return self.calc.computeAverageLocalOfObservations()
@@ -1445,19 +1498,20 @@ class JidtDiscreteTE(JidtDiscrete):
         # Get alphabet sizes and check if discretisation is requested. Try to
         # overwrite alphabet sizes with number of bins.
         try:
-            n_discrete_bins = int(settings['n_discrete_bins'])
-            settings['alph1'] = n_discrete_bins
-            settings['alph2'] = n_discrete_bins
+            n_discrete_bins = int(settings["n_discrete_bins"])
+            settings["alph1"] = n_discrete_bins
+            settings["alph2"] = n_discrete_bins
         except KeyError:
             # do nothing and set alphabet sizes to default below
             pass
-        self.settings.setdefault('alph1', int(2))
-        self.settings.setdefault('alph2', int(2))
+        self.settings.setdefault("alph1", int(2))
+        self.settings.setdefault("alph2", int(2))
 
         # Start JAVA virtual machine and create JAVA object.
         self._start_jvm()
-        self.CalcClass = (jp.JPackage('infodynamics.measures.discrete').
-                          TransferEntropyCalculatorDiscrete)
+        self.CalcClass = jp.JPackage(
+            "infodynamics.measures.discrete"
+        ).TransferEntropyCalculatorDiscrete
 
     def estimate(self, source, target, return_calc=False):
         """Estimate transfer entropy from a source to a target variable.
@@ -1489,22 +1543,29 @@ class JidtDiscreteTE(JidtDiscrete):
         source, target = self._discretise_vars(source, target)
 
         # And finally make the TE calculation:
-        max_base = max(self.settings['alph1'], self.settings['alph2'])
-        calc = self.CalcClass(max_base,
-                              self.settings['history_target'],
-                              self.settings['tau_target'],
-                              self.settings['history_source'],
-                              self.settings['tau_source'],
-                              self.settings['source_target_delay'])
+        max_base = max(self.settings["alph1"], self.settings["alph2"])
+        calc = self.CalcClass(
+            max_base,
+            self.settings["history_target"],
+            self.settings["tau_target"],
+            self.settings["history_source"],
+            self.settings["tau_source"],
+            self.settings["source_target_delay"],
+        )
         calc.initialise()
         # Unfortunately no faster way to pass numpy arrays in than this list
         # conversion
-        calc.addObservations(jp.JArray(jp.JInt, 1)(source.tolist()),
-                             jp.JArray(jp.JInt, 1)(target.tolist()))
-        if self.settings['local_values']:
-            result = np.array(calc.computeLocalFromPreviousObservations(
-                jp.JArray(jp.JInt, 1)(source.tolist()),
-                jp.JArray(jp.JInt, 1)(target.tolist())))
+        calc.addObservations(
+            jp.JArray(jp.JInt, 1)(source.tolist()),
+            jp.JArray(jp.JInt, 1)(target.tolist()),
+        )
+        if self.settings["local_values"]:
+            result = np.array(
+                calc.computeLocalFromPreviousObservations(
+                    jp.JArray(jp.JInt, 1)(source.tolist()),
+                    jp.JArray(jp.JInt, 1)(target.tolist()),
+                )
+            )
         else:
             result = calc.computeAverageLocalOfObservations()
         if return_calc:
@@ -1584,8 +1645,9 @@ class JidtGaussianTE(JidtGaussian):
     def __init__(self, settings):
         # Start JAVA virtual machine and create JAVA object.
         self._start_jvm()
-        CalcClass = (jp.JPackage('infodynamics.measures.continuous.gaussian').
-                     TransferEntropyCalculatorGaussian)
+        CalcClass = jp.JPackage(
+            "infodynamics.measures.continuous.gaussian"
+        ).TransferEntropyCalculatorGaussian
         super().__init__(CalcClass, settings)
 
         # Get embedding and delay parameters.
@@ -1610,13 +1672,15 @@ class JidtGaussianTE(JidtGaussian):
         source = self._ensure_one_dim_input(source)
         target = self._ensure_one_dim_input(target)
 
-        self.calc.initialise(self.settings['history_target'],
-                             self.settings['tau_target'],
-                             self.settings['history_source'],
-                             self.settings['tau_source'],
-                             self.settings['source_target_delay'])
+        self.calc.initialise(
+            self.settings["history_target"],
+            self.settings["tau_target"],
+            self.settings["history_source"],
+            self.settings["tau_source"],
+            self.settings["source_target_delay"],
+        )
         self.calc.setObservations(source, target)
-        if self.settings['local_values']:
+        if self.settings["local_values"]:
             return np.array(self.calc.computeLocalOfPreviousObservations())
         else:
             return self.calc.computeAverageLocalOfObservations()
@@ -1650,7 +1714,7 @@ def common_estimate_surrogates_analytic(estimator, n_perm=200, **data):
     # Then compute surrogates at n_perm random p-values
     surrogate_estimates = np.empty(n_perm)
     for perm in range(n_perm):
-        surrogate_estimates[perm] = \
-            analytic_distribution.computeEstimateForGivenPValue(
-                np.random.random())
+        surrogate_estimates[perm] = analytic_distribution.computeEstimateForGivenPValue(
+            np.random.random()
+        )
     return surrogate_estimates
