@@ -584,7 +584,7 @@ class ResultsNetworkInference(ResultsNetworkAnalysis):
                 can either be
 
                 - 'max_te_lag': the weights represent the source -> target
-                   lag corresponding to the maximum tranfer entropy value
+                   lag corresponding to the maximum transfer entropy value
                    (see documentation for method get_target_delays for details)
                 - 'max_p_lag': the weights represent the source -> target
                    lag corresponding to the maximum p-value

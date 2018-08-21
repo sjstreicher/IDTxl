@@ -331,7 +331,7 @@ def omnibus_test(analysis_setup, data):
         float
             the test's p-value
         float
-            the estimated test statisic, i.e., the information transfer from
+            the estimated test statistic, i.e., the information transfer from
             all sources into the target
     """
     # Set defaults and get parameters from settings dictionary
@@ -403,7 +403,7 @@ def max_statistic(analysis_setup, data, candidate_set, te_max_candidate):
     """Perform maximum statistics for one candidate source.
 
     Test if a transfer entropy value is significantly bigger than the maximum
-    values obtained from surrogates of all remanining candidates.
+    values obtained from surrogates of all remaining candidates.
 
     Args:
         analysis_setup : MultivariateTE instance
@@ -664,7 +664,7 @@ def min_statistic(analysis_setup, data, candidate_set, te_min_candidate):
     """Perform minimum statistics for one candidate source.
 
     Test if a transfer entropy value is significantly bigger than the minimum
-    values obtained from surrogates of all remanining candidates.
+    values obtained from surrogates of all remaining candidates.
 
     Args:
         analysis_setup : MultivariateTE instance
