@@ -54,3 +54,6 @@ test/data/*.node
 *.ckp.old
 *.dat
 *.json
+
+# PyCharm
+.idea/
