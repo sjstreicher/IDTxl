@@ -158,7 +158,8 @@ class Estimator(metaclass=ABCMeta):
         """
         pass
 
-    def _check_settings(self, settings=None):
+    @staticmethod
+    def _check_settings(settings=None):
         """Set default for settings dictionary.
 
         Check if settings dictionary is None. If None, initialise an empty
@@ -192,7 +193,8 @@ class Estimator(metaclass=ABCMeta):
                 )
             )
 
-    def _ensure_one_dim_input(self, var):
+    @staticmethod
+    def _ensure_one_dim_input(var):
         """Make sure input arrays have one dimension.
 
         Check dimensions of input to AIS and TE estimators. JIDT expects one-
@@ -212,7 +214,8 @@ class Estimator(metaclass=ABCMeta):
             raise TypeError("Input arrays must be 1D or 2D with shape[1] == " "1.")
         return var
 
-    def _ensure_two_dim_input(self, var):
+    @staticmethod
+    def _ensure_two_dim_input(var):
         """Make sure input arrays have two dimension.
 
         Check dimensions of input to MI and CMI estimators. JIDT expects two-
