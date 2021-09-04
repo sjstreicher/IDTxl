@@ -246,7 +246,7 @@ class Results:
                     except AttributeError:
                         raise AttributeError(
                             "Did not find any method attributes to combine "
-                            "(.single_proces or ._single_target)."
+                            "(.single_process or ._single_target)."
                         )
                 self._add_single_result(p, results_to_add, r.settings)
 

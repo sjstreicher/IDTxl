@@ -96,7 +96,7 @@ class MultivariatePID(SingleProcessAnalysis):
                 index of target processes
             sources : list of lists
                 indices of the multiple source processes for each target, e.g.,
-                [[0, 1, 2], [1, 0, 3]], all must lists be of the same lenght and
+                [[0, 1, 2], [1, 0, 3]], all must lists be of the same length and
                 list of lists must have the same length as targets
 
         Returns:

@@ -322,7 +322,7 @@ class ActiveInformationStorage(SingleProcessAnalysis):
             self.settings, data, [], process
         )
 
-        # Reset all attributes to inital values if the instance has been used
+        # Reset all attributes to initial values if the instance has been used
         # before.
         if self.selected_vars_full:
             self.selected_vars_full = []

@@ -250,7 +250,7 @@ class OpenCLKraskovMI(OpenCLKraskov):
         # Shift variables to calculate a lagged MI.
         if self.settings["lag_mi"] > 0:
             var1 = var1[: -self.settings["lag_mi"], :]
-            var2 = var2[self.settings["lag_mi"] :, :]
+            var2 = var2[self.settings["lag_mi"]:, :]
         self._check_number_of_points(var1.shape[0])
         signallength = var1.shape[0]
         chunklength = signallength // n_chunks
@@ -346,7 +346,7 @@ class OpenCLKraskovMI(OpenCLKraskov):
             # This value of 1024 should be replaced by
             #  self.devices[self.settings['gpuid']].CL_DEVICE_MEM_BASE_ADDR_ALIGN
             # or something similar, as professional cards are known to have
-            # base adress alignment of 4096 sometimes
+            # base address alignment of 4096 sometimes
             pad_target = 4096
             pad_size = (
                 int(np.ceil(signallength / pad_target)) * pad_target - signallength
