@@ -1,4 +1,4 @@
-"""Perform network inference using multivarate transfer entropy.
+"""Perform network inference using multivariate transfer entropy.
 
 Estimate multivariate transfer entropy (TE) for network inference using a
 greedy approach with maximum statistics to generate a non-uniform embedding
