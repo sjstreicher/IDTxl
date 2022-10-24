@@ -603,7 +603,7 @@ class ResultsNetworkInference(ResultsNetworkAnalysis):
             )
         return source_variables
 
-    def get_target_delays(self, target, criterion='max_te', fdr=True):
+    def get_target_delays(self, target, criterion="max_te", fdr=True):
         """Return list of information-transfer delays for a given target.
 
         Return a list of information-transfer delays for a given target.
