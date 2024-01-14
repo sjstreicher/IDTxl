@@ -6,7 +6,7 @@ from scipy.special import binom
 
 from . import idtxl_utils as utils
 from . import stats
-from .estimator import find_estimator
+from .estimator import find_estimator, get_estimator
 from .network_analysis import NetworkAnalysis
 from .results import DotDict, ResultsNetworkComparison
 
@@ -268,6 +268,7 @@ class NetworkComparison(NetworkAnalysis):
 
         # Main comparison.
         print("\n-------------------------- (1) create union of networks")
+        network_all = np.hstack((network_set_a, network_set_b))
         self._create_union(*network_all)
         print("\n-------------------------- (2) calculate differences in TE " "values")
         self._calculate_cmi_diff_between(data_set_a, data_set_b)
@@ -343,7 +344,7 @@ class NetworkComparison(NetworkAnalysis):
         ), "Unequal no. replications in the two data sets."
         n_replications = data_a.n_replications
         if self.settings["stats_type"] == "dependent":
-            if 2 ** n_replications < self.settings["n_perm_comp"]:
+            if 2**n_replications < self.settings["n_perm_comp"]:
                 raise RuntimeError(
                     "The number of replications {0} in the data"
                     " is not sufficient to allow for the "
@@ -370,7 +371,7 @@ class NetworkComparison(NetworkAnalysis):
                 data_set_b
             ), "The number of data sets is not equal between conditions."
             n_data_sets = len(data_set_a)
-            if 2 ** n_data_sets < self.settings["n_perm_comp"]:
+            if 2**n_data_sets < self.settings["n_perm_comp"]:
                 raise RuntimeError(
                     "The number of data sets per condition {0} "
                     "is not sufficient to enable the "
@@ -489,7 +490,7 @@ class NetworkComparison(NetworkAnalysis):
         # Compare raw TE values between conditions.
         self.cmi_comp = self._compare_union_cmi_within(cmi_a, cmi_b)
 
-    def _calculate_cmi_diff_between(self, data_set_a, data_set_b):
+    def _calculate_cmi_diff_between(self):
         """Calculate the difference in CMI between two groups of subjects.
 
         Calculate the difference in the conditional mutual information (CMI)
@@ -633,7 +634,7 @@ class NetworkComparison(NetworkAnalysis):
             n_sources = len(self.union._single_target[t]["selected_vars_sources"])
             cmi_temp_a = np.zeros(n_sources)
             cmi_temp_b = np.zeros(n_sources)
-            for (i, idx_source) in enumerate(
+            for i, idx_source in enumerate(
                 self.union._single_target[t]["selected_vars_sources"]
             ):
                 # Get realisations of current source from the set of all
@@ -672,7 +673,7 @@ class NetworkComparison(NetworkAnalysis):
             cmi_mean[t] = np.zeros(n_sources)
             for i_source in range(n_sources):
                 temp = np.zeros(n_datasets)
-                for (i_data, c) in enumerate(cmi_set):
+                for i_data, c in enumerate(cmi_set):
                     temp[i_data] = c[t][i_source]
                 cmi_mean[t][i_source] = np.mean(temp)
         return cmi_mean
@@ -737,7 +738,7 @@ class NetworkComparison(NetworkAnalysis):
                     self.settings["n_perm_comp"],
                 )
             )
-            for (i, s) in enumerate(self.union._single_target[t].sources):
+            for i, s in enumerate(self.union._single_target[t].sources):
                 self.cmi_surr[t][i, :] = surrogates_a[s] - surrogates_b[s]
 
     def _get_surrogates_target(self, data, target, sources="all"):
@@ -766,7 +767,6 @@ class NetworkComparison(NetworkAnalysis):
         # Calculate TE for each link, i.e., for a single source and the target
         te_surrogates = {}
         for s in sources:
-
             # Separate selected source variables in variables belonging to the
             # current link and variables belonging to the conditioning set
             link_vars = [i for i in source_vars if i[0] == s]
@@ -952,19 +952,11 @@ class NetworkComparison(NetworkAnalysis):
             for r in resample_a:
                 if r >= n_repl:  # take realisation from cond B
                     r_perm = r - n_repl
-                    cond_a_perm[
-                        i_0:i_1,
-                    ] = cond_b_real[repl_idx_b == r_perm, :]
-                    cur_val_a_perm[
-                        i_0:i_1,
-                    ] = cur_val_b_real[repl_idx_b == r_perm, :]
+                    cond_a_perm[i_0:i_1,] = cond_b_real[repl_idx_b == r_perm, :]
+                    cur_val_a_perm[i_0:i_1,] = cur_val_b_real[repl_idx_b == r_perm, :]
                 else:  # take realisation from cond A otherwise
-                    cond_a_perm[
-                        i_0:i_1,
-                    ] = cond_a_real[repl_idx_a == r, :]
-                    cur_val_a_perm[
-                        i_0:i_1,
-                    ] = cur_val_a_real[repl_idx_a == r, :]
+                    cond_a_perm[i_0:i_1,] = cond_a_real[repl_idx_a == r, :]
+                    cur_val_a_perm[i_0:i_1,] = cur_val_a_real[repl_idx_a == r, :]
                 i_0 = i_1
                 i_1 = i_0 + n_per_repl
 
@@ -974,19 +966,11 @@ class NetworkComparison(NetworkAnalysis):
             for r in resample_b:
                 if r >= n_repl:  # take realisation from cond B
                     r_perm = r - n_repl
-                    cond_b_perm[
-                        i_0:i_1,
-                    ] = cond_b_real[repl_idx_b == r_perm, :]
-                    cur_val_b_perm[
-                        i_0:i_1,
-                    ] = cur_val_b_real[repl_idx_b == r_perm, :]
+                    cond_b_perm[i_0:i_1,] = cond_b_real[repl_idx_b == r_perm, :]
+                    cur_val_b_perm[i_0:i_1,] = cur_val_b_real[repl_idx_b == r_perm, :]
                 else:  # take realisation from cond A otherwise
-                    cond_b_perm[
-                        i_0:i_1,
-                    ] = cond_a_real[repl_idx_a == r, :]
-                    cur_val_b_perm[
-                        i_0:i_1,
-                    ] = cur_val_a_real[repl_idx_a == r, :]
+                    cond_b_perm[i_0:i_1,] = cond_a_real[repl_idx_a == r, :]
+                    cur_val_b_perm[i_0:i_1,] = cur_val_a_real[repl_idx_a == r, :]
                 i_0 = i_1
                 i_1 = i_0 + n_per_repl
         else:
@@ -1007,11 +991,8 @@ class NetworkComparison(NetworkAnalysis):
             )
 
         # Add CMI estimator to class.
-        try:
-            EstimatorClass = find_estimator(settings["cmi_estimator"])
-        except KeyError:
-            raise KeyError("Please provide an estimator class or name!")
-        self._cmi_estimator = EstimatorClass(settings)
+        assert "cmi_estimator" in settings, "Estimator was not specified!"
+        self._cmi_estimator = get_estimator(settings["cmi_estimator"], settings)
 
         if "local_values" in settings and settings["local_values"]:
             raise RuntimeError("Can" "t run network comparison on local values.")

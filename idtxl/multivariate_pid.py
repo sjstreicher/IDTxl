@@ -8,7 +8,7 @@ Note:
 """
 import numpy as np
 
-from .estimator import find_estimator
+from .estimator import get_estimator
 from .results import ResultsMultivariatePID
 from .single_process_analysis import SingleProcessAnalysis
 
@@ -225,11 +225,8 @@ class MultivariatePID(SingleProcessAnalysis):
     def _initialise(self, settings, data, target, sources):
         """Check input, set initial or default values for analysis settings."""
         # Check requested PID estimator.
-        try:
-            EstimatorClass = find_estimator(settings["pid_estimator"])
-        except KeyError:
-            raise RuntimeError("Estimator was not specified!")
-        self._pid_estimator = EstimatorClass(settings)
+        assert "pid_estimator" in settings, "Estimator was not specified!"
+        self._pid_estimator = get_estimator(settings["pid_estimator"], settings)
 
         self.settings = settings.copy()
         self.settings.setdefault("lags_pid", [1 for i in range(len(sources))])
@@ -270,7 +267,6 @@ class MultivariatePID(SingleProcessAnalysis):
         )
 
     def _calculate_pid(self, data):
-
         # TODO Discuss how and if the following statistical testing should be
         # included included. Remove dummy results.
         # [orig_pid, sign_1, p_val_1,

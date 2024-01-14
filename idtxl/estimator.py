@@ -36,7 +36,7 @@ def list_estimators():
             pprint(class_list)
 
 
-def find_estimator(est):
+def _find_estimator(est):
     """Return estimator class.
 
     Return an estimator class. If input is a class, check if it implements
@@ -77,6 +77,105 @@ def find_estimator(est):
             "Please provide an estimator class or the name of an "
             "estimator as string."
         )
+
+
+def get_estimator(est, settings):
+    """Factory method that creates an Estimator instance with the given settings.
+
+    If the MPI flag is set to True, return an MPIEstimator instead.
+
+    Args:
+        est : str | Class
+            name of an estimator class implemented in IDTxl or custom estimator
+            class
+
+    Returns
+        Estimator
+            Instance of the requested estimator or MPIEstimator
+    """
+
+    # Check if MPI flag is set to True
+    if settings.get("MPI", False):
+        settings_mpi = settings.copy()
+
+        # Remove MPI flag to avoid infinite recursion
+        del settings_mpi["MPI"]
+
+        # Import just in time to avoid cyclic import
+        from .estimators_mpi import MPIEstimator
+
+        return MPIEstimator(est, settings_mpi)
+
+    # Otherwise find Estimator and return instance
+    EstimatorClass = _find_estimator(est)
+
+    return EstimatorClass(settings)
+
+
+def get_estimator(est, settings):
+    """Factory method that creates an Estimator instance with the given settings.
+
+    If the MPI flag is set to True, return an MPIEstimator instead.
+
+    Args:
+        est : str | Class
+            name of an estimator class implemented in IDTxl or custom estimator
+            class
+
+    Returns
+        Estimator
+            Instance of the requestet estimator or MPIEstimator
+    """
+
+    # Check if MPI flag is set to True
+    if settings.get("MPI", False):
+        settings_mpi = settings.copy()
+
+        # Remove MPI flag to avoid infinite recursion
+        del settings_mpi["MPI"]
+
+        # Import just in time to avoid cyclic import
+        from .estimators_mpi import MPIEstimator
+
+        return MPIEstimator(est, settings_mpi)
+
+    # Otherwise find Estimator and return instance
+    EstimatorClass = _find_estimator(est)
+
+    return EstimatorClass(settings)
+
+
+def get_estimator(est, settings):
+    """Factory method that creates an Estimator instance with the given settings.
+
+    If the MPI flag is set to True, return an MPIEstimator instead.
+
+    Args:
+        est : str | Class
+            name of an estimator class implemented in IDTxl or custom estimator
+            class
+
+    Returns
+        Estimator
+            Instance of the requestet estimator or MPIEstimator
+    """
+
+    # Check if MPI flag is set to True
+    if settings.get("MPI", False):
+        settings_mpi = settings.copy()
+
+        # Remove MPI flag to avoid infinite recursion
+        del settings_mpi["MPI"]
+
+        # Import just in time to avoid cyclic import
+        from .estimators_mpi import MPIEstimator
+
+        return MPIEstimator(est, settings_mpi)
+
+    # Otherwise find Estimator and return instance
+    EstimatorClass = _find_estimator(est)
+
+    return EstimatorClass(settings)
 
 
 class Estimator(metaclass=ABCMeta):
@@ -305,21 +404,21 @@ class Estimator(metaclass=ABCMeta):
             for v in slice_vars:
                 if data[v] is not None:
                     n_samples_total.append(data[v].shape[0])
-            assert (
-                np.array(n_samples_total) == n_samples_total[0]
-            ).all(), "No. realisations should be the same for all variables: " "{0}".format(
-                n_samples_total
+            assert (np.array(n_samples_total) == n_samples_total[0]).all(), (
+                "No. realisations should be the same for all variables: "
+                f"{n_samples_total}",
             )
             n_samples_total = n_samples_total[0]
             assert (
                 n_samples_total is not None
             ), "All variables provided for estimation are empty."
-            assert (
-                n_samples_total % n_chunks == 0
-            ), "No. chunks ({0}) does not match data length ({1}). Remainder:" " {2}.".format(
-                n_chunks,
-                data[slice_vars[0]].shape[0],
-                data[slice_vars[0]].shape[0] % n_chunks,
+            assert n_samples_total % n_chunks == 0, (
+                "No. chunks ({0}) does not match data length ({1}). Remainder:"
+                " {2}.".format(
+                    n_chunks,
+                    data[slice_vars[0]].shape[0],
+                    data[slice_vars[0]].shape[0] % n_chunks,
+                )
             )
 
             # Cut data into chunks and call estimator serially on each chunk.

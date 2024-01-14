@@ -232,6 +232,41 @@ def _plot_adj_matrix(
     return cbar
 
 
+def _plot_adj_matrix(adj_matrix, mat_color='gray_r', diverging=False,
+                     cbar_label='delay', cbar_stepsize=1):
+    """Plot adjacency matrix."""
+    # Plot matrix, set minimum and maximum values to the same value for
+    # diverging plots to center colormap at 0, i.e., 0 is plotted in white
+    # https://stackoverflow.com/questions/25500541/
+    # matplotlib-bwr-colormap-always-centered-on-zero
+    if diverging:
+        max_val = np.max(abs(adj_matrix))
+        min_val = -max_val
+    else:
+        max_val = np.max(adj_matrix)
+        min_val = -np.min(adj_matrix)
+    plt.imshow(adj_matrix, cmap=mat_color, interpolation='nearest',
+               vmin=min_val, vmax=max_val)
+
+    # Set the colorbar and make colorbar match the image in size using the
+    # fraction and pad parameters (see https://stackoverflow.com/a/26720422).
+    if cbar_label == 'delay':
+        cbar_label = 'delay [samples]'
+        cbar_ticks = np.arange(0, max_val + 1, cbar_stepsize)
+    else:
+        cbar_ticks = np.arange(min_val, max_val + 0.01 * max_val,
+                               cbar_stepsize)
+    cbar = plt.colorbar(fraction=0.046, pad=0.04, ticks=cbar_ticks)
+    cbar.set_label(cbar_label, rotation=90)
+
+    # Set x- and y-ticks.
+    plt.xticks(np.arange(adj_matrix.shape[1]))
+    plt.yticks(np.arange(adj_matrix.shape[0]))
+    ax = plt.gca()
+    ax.xaxis.tick_top()
+    return cbar
+
+
 def plot_mute_graph():
     """Plot MuTE example network.
 

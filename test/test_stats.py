@@ -190,6 +190,15 @@ def test_ais_fdr():
     with pytest.raises(RuntimeError):
         res_pruned.get_significant_processes(fdr=True)
 
+    # Test function call for single result
+    res_pruned = stats.network_fdr(settings, res_1)
+    print('successful call on single result dict.')
+
+    # Test None result for insufficient no. permutations
+    res_1[0]['settings']['n_perm_max_seq'] = 2
+    res_pruned = stats.network_fdr(settings, res_1, res_2)
+    assert not res_pruned, ('Res. should be None is no. permutations too low.')
+
 
 def test_find_pvalue():
     test_val = 1

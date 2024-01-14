@@ -38,7 +38,6 @@ class MultivariateTE(NetworkInferenceTE, NetworkInferenceMultivariate):
       http://doi.org/10.1103/PhysRevE.83.051112
 
     Attributes:
-
         source_set : list
             indices of source processes tested for their influence on the
             target

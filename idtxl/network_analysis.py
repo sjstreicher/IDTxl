@@ -12,7 +12,7 @@ import numpy as np
 
 from . import idtxl_io as io
 from . import idtxl_utils as utils
-from .estimator import find_estimator
+from .estimator import get_estimator
 
 
 class NetworkAnalysis:
@@ -151,7 +151,7 @@ class NetworkAnalysis:
             Use temporary variables to speed things up.
         """
         indices = np.zeros(len(self.selected_vars_sources)).astype(int)
-        for (i, idx) in enumerate(self.selected_vars_sources):
+        for i, idx in enumerate(self.selected_vars_sources):
             indices[i] = self.selected_vars_full.index(idx)
         self._selected_vars_sources_realisations = self._selected_vars_realisations[
             :, indices
@@ -213,17 +213,21 @@ class NetworkAnalysis:
         # average estimator. Internally, the average estimator is used for
         # building the non-uniform embedding, etc. The local estimator is used
         # to estimate single-link MI/TE or single-process AIS in the end.
-        try:
-            EstimatorClass = find_estimator(self.settings["cmi_estimator"])
-        except KeyError:
-            raise RuntimeError("Please provide an estimator class or name!")
+        assert "cmi_estimator" in self.settings, "Estimator was not specified!"
+
         if self.settings["local_values"]:
             self.settings["local_values"] = False
-            self._cmi_estimator = EstimatorClass(self.settings)
+            self._cmi_estimator = get_estimator(
+                self.settings["cmi_estimator"], self.settings
+            )
             self.settings["local_values"] = True
-            self._cmi_estimator_local = EstimatorClass(self.settings)
+            self._cmi_estimator_local = get_estimator(
+                self.settings["cmi_estimator"], self.settings
+            )
         else:
-            self._cmi_estimator = EstimatorClass(self.settings)
+            self._cmi_estimator = get_estimator(
+                self.settings["cmi_estimator"], self.settings
+            )
 
     def _separate_realisations(self, idx_full, idx_single):
         """Separate single index realisations from a set of realisations.
@@ -255,7 +259,7 @@ class NetworkAnalysis:
         # variables).
         array_col_single = self.selected_vars_full.index(idx_single)
         array_col_remain = np.zeros(len(idx_remaining)).astype(int)
-        for (i, idx) in enumerate(idx_remaining):
+        for i, idx in enumerate(idx_remaining):
             array_col_remain[i] = self.selected_vars_full.index(idx)
 
         # Get realisations of the single and remaining variables.
@@ -481,8 +485,7 @@ class NetworkAnalysis:
             links = np.zeros(len(sources))
 
         # Loop over individual sources.
-        for (i, s) in enumerate(sources):
-
+        for i, s in enumerate(sources):
             # Separate source variables in variables belonging to the current
             # link and variables belonging to the conditioning set. Get
             # realisations for the current link's selected source variables.
@@ -524,18 +527,18 @@ class NetworkAnalysis:
 
             if self.settings["local_values"]:
                 local_values = self._cmi_estimator_local.estimate(
-                    current_value_realisations,
-                    source_realisations,
-                    conditional_realisations,
+                    var1=current_value_realisations,
+                    var2=source_realisations,
+                    conditional=conditional_realisations,
                 )
                 links[i] = local_values.reshape(
                     max(replication_ind) + 1, sum(replication_ind == 0)
                 ).T
             else:
                 links[i] = self._cmi_estimator.estimate(
-                    current_value_realisations,
-                    source_realisations,
-                    conditional_realisations,
+                    var1=current_value_realisations,
+                    var2=source_realisations,
+                    conditional=conditional_realisations,
                 )
 
         return links
