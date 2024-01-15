@@ -1,4 +1,7 @@
-""" Optimization of embedding parameters of spike times using the history dependence estimators """
+""" Optimization of embedding parameters of spike times using the history dependence
+estimators.
+
+"""
 
 from pathlib import Path
 from sys import stderr
@@ -15,7 +18,8 @@ from idtxl.results import DotDict, ResultsSingleProcessRudelt
 # noinspection PyAttributeOutsideInit
 class OptimizationRudelt:
     """
-    Optimization of embedding parameters of spike times using the history dependence estimators
+    Optimization of embedding parameters of spike times using the history dependence
+    estimators.
 
     References:
 
@@ -25,7 +29,7 @@ class OptimizationRudelt:
 
         [2]: https://github.com/Priesemann-Group/hdestimator
 
-    implemented in idtxl by Michael Lindner, Göttingen 2021
+    implemented in IDTxl by Michael Lindner, Göttingen 2021
 
     Args:
         settings : dict
@@ -132,6 +136,8 @@ class OptimizationRudelt:
                 (default: False)
     """
 
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self, settings=None):
         settings = self._check_settings(settings)
         self.settings = settings.copy()
@@ -233,7 +239,7 @@ class OptimizationRudelt:
         self.settings.setdefault("visualization", False)
         self.settings.setdefault("debug", False)
 
-        self.check_inputs()  # ------------------------------------------------------------- TODO CHECK INPUTS
+        self.check_inputs()  # TODO CHECK INPUTS
 
         self.embeddings = self.get_embeddings(
             self.settings["embedding_past_range_set"],
@@ -251,10 +257,9 @@ class OptimizationRudelt:
         """
         if settings is None:
             return {}
-        elif type(settings) is not dict:
+        if not isinstance(settings, dict):
             raise TypeError("settings should be a dictionary.")
-        else:
-            return settings
+        return settings
 
     def check_inputs(self):
         """
@@ -303,8 +308,8 @@ class OptimizationRudelt:
             "embedding_past_range_set" in self.settings
         ), "embedding_past_range_set has to be specified (see help)!"
         assert isinstance(self.settings["embedding_past_range_set"], list), (
-            "Error: setting 'embedding_past_range_set' needs to be a list but is defined as {0}. "
-            "Aborting.".format(type(self.settings["embedding_past_range_set"]))
+            "Error: setting 'embedding_past_range_set' needs to be a list but is "
+            f"defined as {type(self.settings['embedding_past_range_set'])}. Aborting."
         )
 
         assert (

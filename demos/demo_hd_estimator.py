@@ -16,7 +16,7 @@ folder:
 import numpy as np
 
 from idtxl.data_spiketime import Data_spiketime
-from idtxl.embedding_optimization_ais_Rudelt import OptimizationRudelt
+from idtxl.embedding_optimization_ais_rudelt import OptimizationRudelt
 
 # a) Generate test data
 print("\nTest optimization_Rudelt using BBC estimator on Rudelt data")

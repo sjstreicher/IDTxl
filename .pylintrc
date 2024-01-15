@@ -1,6 +1,7 @@
 [MASTER]
 
 disable=fixme,
+    import-error
 
 [FORMAT]
 

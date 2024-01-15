@@ -1,9 +1,9 @@
 """System test for Rudelt optimization on example data (creating result image)."""
 
 from idtxl.data_spiketime import Data_spiketime
-from idtxl.embedding_optimization_ais_Rudelt import OptimizationRudelt
+from idtxl.embedding_optimization_ais_rudelt import OptimizationRudelt
 
-print("\nTest optimization_Rudelt using bbc estimator on Rudelt data")
+print("\nTest optimization_rudelt using bbc estimator on Rudelt data")
 data = Data_spiketime()  # initialise empty data object
 data.load_Rudelt_data()  # load Rudelt spike time data
 
@@ -28,7 +28,7 @@ settings = {
     "debug": True,
     "visualization": True,
     "output_path": "./test_vis",
-    "output_prefix": "systemtest_optimizationRudelt_image1",
+    "output_prefix": "system_test_optimization_rudelt_image1",
 }
 
 processes = [0]
