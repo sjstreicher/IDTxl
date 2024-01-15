@@ -1,8 +1,8 @@
 """Provide unit tests for high-level Multivariate PID estimation."""
-import pytest
 import numpy as np
-from idtxl.multivariate_pid import MultivariatePID
+
 from idtxl.data import Data
+from idtxl.multivariate_pid import MultivariatePID
 
 
 def test_pid_user_input():

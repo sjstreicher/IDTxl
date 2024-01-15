@@ -1,14 +1,15 @@
 # pylint: disable=protected-access,invalid-name
 """Provide unit tests for IDTxl checkpointing."""
 import os
+
 import numpy as np
-from idtxl.multivariate_te import MultivariateTE
-from idtxl.data import Data
-from idtxl.multivariate_mi import MultivariateMI
+from test_results import _get_discrete_gauss_data
+
 from idtxl.bivariate_mi import BivariateMI
 from idtxl.bivariate_te import BivariateTE
-
-from test_results import _get_discrete_gauss_data
+from idtxl.data import Data
+from idtxl.multivariate_mi import MultivariateMI
+from idtxl.multivariate_te import MultivariateTE
 
 N_PERM = (
     21  # this no. permutations is usually sufficient to find links in the MUTE data

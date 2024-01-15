@@ -89,7 +89,7 @@ def get_estimator(est, settings):
 
     Returns
         Estimator
-            Instance of the requestet estimator or MPIEstimator
+            Instance of the requested estimator or MPIEstimator
     """
 
     # Check if MPI flag is set to True

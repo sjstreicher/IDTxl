@@ -1,6 +1,6 @@
-from setuptools import setup
-from Cython.Build import cythonize
 import numpy
+from Cython.Build import cythonize
+from setuptools import setup
 
 # to compile, run
 # python3 hde_setup.py build_ext --inplace

@@ -7,6 +7,7 @@ import os.path
 from datetime import datetime
 from pprint import pprint
 from shutil import copyfile
+from typing import List, Tuple
 
 import numpy as np
 
@@ -20,6 +21,8 @@ class NetworkAnalysis:
 
     The class provides routines to check user input and set defaults.
     """
+
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self):
         self.settings = {}
@@ -39,7 +42,7 @@ class NetworkAnalysis:
 
     @current_value.setter
     def current_value(self, idx):
-        if (idx is not None) and (type(idx) is not tuple):
+        if (idx is not None) and (not isinstance(idx, tuple)):
             raise TypeError(
                 (
                     "The current value should be a tuple (index "
@@ -53,7 +56,7 @@ class NetworkAnalysis:
         """Get realisations of the current_value."""
         if self.__current_value_realisations is None:
             print("Attribute has not been set yet.")
-        if type(self.__current_value_realisations) is tuple:
+        if isinstance(self.__current_value_realisations, tuple):
             raise TypeError("something went wrong")
         return self.__current_value_realisations
 
@@ -73,8 +76,8 @@ class NetworkAnalysis:
         return self._selected_vars_full
 
     @selected_vars_full.setter
-    def selected_vars_full(self, idx_list):
-        if type(idx_list) is not list and (type(idx_list[0]) is not tuple):
+    def selected_vars_full(self, idx_list: List[Tuple]):
+        if (not isinstance(idx_list, list)) and (not isinstance(idx_list[0], tuple)):
             raise TypeError(
                 ("Expected a list of tuples (index process, " + "index sample).")
             )
@@ -88,8 +91,8 @@ class NetworkAnalysis:
         return self._selected_vars_target
 
     @selected_vars_target.setter
-    def selected_vars_target(self, idx_list):
-        if idx_list is not None and type(idx_list) is not list:
+    def selected_vars_target(self, idx_list: List[Tuple]):
+        if idx_list is not None and (not isinstance(idx_list, list)):
             raise TypeError(
                 ("Expected a list of tuples (index process, " + "index sample).")
             )
@@ -103,8 +106,8 @@ class NetworkAnalysis:
         return self._selected_vars_sources
 
     @selected_vars_sources.setter
-    def selected_vars_sources(self, idx_list):
-        if idx_list is not None and type(idx_list) is not list:
+    def selected_vars_sources(self, idx_list: List[Tuple]):
+        if idx_list is not None and (not isinstance(idx_list, list)):
             raise TypeError(
                 ("Expected a list of tuples (index process, " + "index sample).")
             )
@@ -182,8 +185,8 @@ class NetworkAnalysis:
         if current_value_sample is None:
             try:
                 current_value_sample = self.current_value[1]
-            except (AttributeError, TypeError):
-                raise AttributeError("Current value not set.")
+            except (AttributeError, TypeError) as exc:
+                raise AttributeError("Current value not set.") from exc
 
         lag_list = cp.copy(idx_list)
         for c in idx_list:
@@ -197,8 +200,8 @@ class NetworkAnalysis:
         if current_value_sample is None:
             try:
                 current_value_sample = self.current_value[1]
-            except (AttributeError, TypeError):
-                raise AttributeError("Current value not set.")
+            except (AttributeError, TypeError) as exc:
+                raise AttributeError("Current value not set.") from exc
 
         idx_list = cp.copy(lag_list)
         for c in lag_list:
@@ -214,7 +217,8 @@ class NetworkAnalysis:
         # average estimator. Internally, the average estimator is used for
         # building the non-uniform embedding, etc. The local estimator is used
         # to estimate single-link MI/TE or single-process AIS in the end.
-        assert "cmi_estimator" in self.settings, "Estimator was not specified!"
+        if "cmi_estimator" not in self.settings:
+            raise RuntimeError("Estimator was not specified!")
 
         if self.settings["local_values"]:
             self.settings["local_values"] = False
@@ -268,7 +272,7 @@ class NetworkAnalysis:
             self._selected_vars_realisations[:, array_col_single], axis=1
         )
         if len(idx_full) == 1:
-            # If no realiastions remain, set variable to None instead of and
+            # If no realisations remain, set variable to None instead of and
             # empty array so the JIDT estimator doesn't break
             real_remain = None
         else:
@@ -296,13 +300,14 @@ class NetworkAnalysis:
             are absolute values with respect to some data array.
         """
         candidate_set = self._build_variable_list(processes, samples)
-        # Remove candidates that were already manullay added to the
-        # conditioning set via the 'add_conditionals' setting. Otherwise the
+        # Remove candidates that were already manually added to the
+        # conditioning set via the 'add_conditionals' setting. Otherwise, the
         # candidates get tested in the inclusion step.
         candidate_set = self._remove_forced_conditionals(candidate_set)
         return candidate_set
 
-    def _build_variable_list(self, processes, samples):
+    @staticmethod
+    def _build_variable_list(processes, samples):
         """Build a list of variable tuples with (process index, sample index).
 
         Args:
@@ -367,8 +372,8 @@ class NetworkAnalysis:
                 realisations of the selected variables
         """
         assert len(idx) == realisations.shape[1], (
-            "Dimensionality of realisations array ({0}) and length of index "
-            "list ({1}) do not match.".format(realisations.shape[1], len(idx))
+            f"Dimensionality of realisations array ({realisations.shape[1]}) and "
+            f"length of index list ({len(idx)}) do not match."
         )
         self._append_selected_vars_idx(idx)
         self._append_selected_vars_realisations(realisations)
@@ -524,7 +529,7 @@ class NetworkAnalysis:
             elif conditioning == "none":  # no conditioning (bivariate MI)
                 conditional_realisations = None
             else:
-                raise RuntimeError("Unknown conditioning: {0}.".format(conditioning))
+                raise RuntimeError(f"Unknown conditioning: {conditioning}.")
 
             if self.settings["local_values"]:
                 local_values = self._cmi_estimator_local.estimate(
@@ -549,24 +554,25 @@ class NetworkAnalysis:
         settings.setdefault("write_ckp", False)
         if settings["write_ckp"]:
             settings.setdefault("filename_ckp", "./idtxl_checkpoint")
-            filename_ckp = "{0}.ckp".format(settings["filename_ckp"])
+            filename_ckp = f"{settings['filename_ckp']}.ckp"
             if not os.path.isfile(filename_ckp):
                 self._initialise_checkpoint(settings, data, sources, target)
             return settings
-        else:
-            return settings
 
-    def _initialise_checkpoint(self, settings, data, sources, targets):
+        return settings
+
+    @staticmethod
+    def _initialise_checkpoint(settings, data, sources, targets):
         """Write first checkpoint file, data, and settings to disk.
 
-        Called once at the beggining of an analysis using checkpointing. Write
+        Called once at the beginning of an analysis using checkpointing. Write
         data and analysis settings to disk. This needs to be done only once.
         Initialise checkpoint file: write header with time stamp, path to data
         and settings, and targets and sources to be analysed. The checkpoint
-        file is updated during the analyis.
+        file is updated during the analysis.
         """
         # Check if targets is an int, convert to array.
-        if type(targets) is int:
+        if isinstance(targets, int):
             targets = [targets]
         # Write data to disk.
         io.save_pickle(data, "{0}.dat".format(settings["filename_ckp"]))
@@ -574,8 +580,8 @@ class NetworkAnalysis:
         io.save_json(settings, "{0}.json".format(settings["filename_ckp"]))
 
         # Initialise checkpoint file for later updates.
-        filename_ckp = "{0}.ckp".format(settings["filename_ckp"])
-        with open(filename_ckp, "w") as text_file:
+        filename_ckp = f"{settings['filename_ckp']}.ckp"
+        with open(filename_ckp, "w", encoding="utf-8") as text_file:
             text_file.write("IDTxl checkpoint file.\n")
             timestamp = datetime.now()
             text_file.write("{:%Y-%m-%d %H:%M:%S}\n".format(timestamp))
@@ -607,7 +613,7 @@ class NetworkAnalysis:
         version (*.ckp.old) of the checkpoint file to ensure a recoverable
         state even if writing of the current checkpoint fails.
         """
-        filename_ckp = "{0}.ckp".format(self.settings["filename_ckp"])
+        filename_ckp = f"{self.settings['filename_ckp']}.ckp"
 
         # Check if a checkpoint file already exists. If yes,
         #   1. make a copy using the same file name plus the .old extension
@@ -643,23 +649,18 @@ class NetworkAnalysis:
         )
         # Read file as list of lines and replace first and last line. Write
         # modified file back to disk.
-        with open(filename_ckp, "r") as f:
-            lines = f.readlines()
-        lines[1] = "{:%Y-%m-%d %H:%M:%S}\n".format(timestamp)
+        with open(filename_ckp, "r", encoding="utf-8") as file:
+            lines = file.readlines()
+        lines[1] = f"{timestamp:%Y-%m-%d %H:%M:%S}\n"
         if int(lines[-1][0]) == self.target:
-            lines[-1] = "{0}: {1}: {2}\n".format(
-                self.target, self.source_set, selected_variables
-            )
+            lines[-1] = f"{self.target}: {self.source_set}: {selected_variables}\n"
         else:
-            lines.append(
-                "{0}: {1}: {2}\n".format(
-                    self.target, self.source_set, selected_variables
-                )
-            )
-        with open(filename_ckp, "w") as f:
-            f.writelines(lines)
+            lines.append(f"{self.target}: {self.source_set}: {selected_variables}\n")
+        with open(filename_ckp, "w", encoding="utf-8") as file:
+            file.writelines(lines)
 
-    def resume_checkpoint(self, file_path):
+    @staticmethod
+    def resume_checkpoint(file_path):
         """Resume analysis from a checkpoint saved to disk.
 
         Args:
@@ -668,8 +669,8 @@ class NetworkAnalysis:
         """
 
         # Read checkpoint
-        with open("{}.ckp".format(file_path), "r") as f:
-            lines = f.readlines()
+        with open(f"{file_path}.ckp", "r", encoding="utf-8") as file:
+            lines = file.readlines()
         timestamp = lines[1]
         data_path = lines[2][15:].strip()
         settings_path = lines[3][15:].strip()
@@ -678,19 +679,15 @@ class NetworkAnalysis:
         settings = io.load_json(settings_path)
         verbose = settings.get("verbose", True)
         if verbose:
-            print(
-                "Resuming analysis from file {}.ckp, saved {}".format(
-                    file_path, timestamp
-                )
-            )
+            print(f"Resuming analysis from file {file_path}.ckp, saved {timestamp}")
         # Read targets and sources.
         targets = ast.literal_eval(lines[4].split(":")[1].strip())
         sources = ast.literal_eval(lines[5].split(":")[1].strip())
         # Read selected variables
         # Format: target - sources analyzed - selected variables
         selected_variables = {}  # vars as lags wrt. the current value
-        for l in range(8, len(lines)):
-            result = [x.strip() for x in lines[l].split(":")]
+        for line_index in range(8, len(lines)):
+            result = [x.strip() for x in lines[line_index].split(":")]
             # ast.literal_eval(result[2]): IndexError: list index out of range
             try:
                 selected_variables[int(result[0])] = ast.literal_eval(result[2])

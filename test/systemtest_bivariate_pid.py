@@ -1,9 +1,11 @@
 """Provide unit tests for high-level PID estimation."""
 import time as tm
+
 import numpy as np
+
+import idtxl.idtxl_utils as utils
 from idtxl.bivariate_pid import BivariatePID
 from idtxl.data import Data
-import idtxl.idtxl_utils as utils
 
 
 def test_pid_xor_data():

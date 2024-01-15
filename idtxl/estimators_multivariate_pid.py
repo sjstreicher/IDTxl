@@ -1,4 +1,4 @@
-"""Multivariate Partical information decomposition for discrete random variables.
+"""Multivariate Partial information decomposition for discrete random variables.
 
 This module provides an estimator for multivariate partial information
 decomposition as proposed in

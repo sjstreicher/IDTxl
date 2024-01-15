@@ -1,7 +1,7 @@
 """Generate test data for IDTxl network comparison unit and system tests.
 
 Generate test data for IDTxl network comparison unit and system tests. Simulate
-discrete and continous data from three correlated Gaussian data sets. Perform
+discrete and continuous data from three correlated Gaussian data sets. Perform
 network inference using bivariate/multivariate mutual information (MI)/transfer
 entropy (TE) analysis. Results are saved used for unit and system testing of
 network comparison (systemtest_network_comparison.py).
@@ -13,14 +13,14 @@ variables and looks like this:
 """
 import pickle
 from pathlib import Path
+
 import numpy as np
 
-from idtxl.multivariate_te import MultivariateTE
 from idtxl.bivariate_te import BivariateTE
-from idtxl.multivariate_mi import MultivariateMI
-from idtxl.bivariate_mi import BivariateMI
-from idtxl.estimators_jidt import JidtDiscreteCMI
 from idtxl.data import Data
+from idtxl.estimators_jidt import JidtDiscreteCMI
+from idtxl.multivariate_mi import MultivariateMI
+from idtxl.multivariate_te import MultivariateTE
 
 # path = os.path.join(os.path.dirname(__file__) + '/data/')
 path = Path("data/")

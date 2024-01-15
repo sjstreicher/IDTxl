@@ -1,10 +1,12 @@
 """System test for multivariate TE using the JIDT Kraskov estimator."""
 import os
 import random as rn
+
 import numpy as np
-from idtxl.multivariate_te import MultivariateTE
+
 from idtxl.data import Data
 from idtxl.idtxl_utils import calculate_mi
+from idtxl.multivariate_te import MultivariateTE
 
 
 def test_multivariate_te_corr_gaussian(estimator=None):

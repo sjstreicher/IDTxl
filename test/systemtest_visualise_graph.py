@@ -2,10 +2,11 @@
 
 author: patricia
 """
+import matplotlib.pyplot as plt
+
+from idtxl import visualise_graph
 from idtxl.data import Data
 from idtxl.multivariate_te import MultivariateTE
-from idtxl import visualise_graph
-import matplotlib.pyplot as plt
 
 
 def test_plot_mute_graph():

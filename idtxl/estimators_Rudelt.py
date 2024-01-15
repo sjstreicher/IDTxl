@@ -1,19 +1,21 @@
 """Provide HDE estimators."""
 
 import logging
-import numpy as np
-from scipy.optimize import newton, minimize
 import sys
-from sys import stderr
-from idtxl.estimator import Estimator
-import idtxl.hde_utils as utl
 from collections import Counter
+from sys import stderr
+
 import mpmath as mp
+import numpy as np
+from scipy.optimize import minimize, newton
+
+import idtxl.hde_utils as utl
+from idtxl.estimator import Estimator
 
 FAST_EMBEDDING_AVAILABLE = True
 try:
     import idtxl.hde_fast_embedding as fast_emb
-except:
+except ImportError:
     FAST_EMBEDDING_AVAILABLE = False
     print(
         """

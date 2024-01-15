@@ -2,17 +2,18 @@
 
 This module provides unit tests for the bivariate TE analysis class.
 """
-import pytest
 import itertools as it
+
 import numpy as np
+import pytest
+from test_estimators_jidt import _get_gauss_data, jpype_missing
+from test_results import _get_discrete_gauss_data
+
 from idtxl.bivariate_te import BivariateTE
-from idtxl.multivariate_te import MultivariateTE
 from idtxl.data import Data
 from idtxl.estimators_jidt import JidtKraskovTE
-from test_estimators_jidt import jpype_missing
-from test_results import _get_discrete_gauss_data
 from idtxl.idtxl_utils import calculate_mi
-from test_estimators_jidt import _get_gauss_data
+from idtxl.multivariate_te import MultivariateTE
 
 SEED = 0
 

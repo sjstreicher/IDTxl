@@ -1,10 +1,12 @@
 """Provide spiketime data structures for IDTxl analysis."""
 
-import numpy as np
-from sys import stderr
-from scipy.optimize import newton
-import idtxl.hde_utils as utl
 import os
+from sys import stderr
+
+import numpy as np
+from scipy.optimize import newton
+
+import idtxl.hde_utils as utl
 
 VERBOSE = False
 
@@ -24,7 +26,7 @@ except:
     )
 
 
-class Data_spiketime:
+class DataSpiketime:
     """Store data for Rudelt estimators and optimization.
 
     Data takes a 1-dimensional numpy array representing the processes.
@@ -641,15 +643,15 @@ class Data_spiketime:
                 bs_past_symbol_array[i] = bs_past_symbol
                 bs_current_symbol_array[i] = bs_current_symbol
 
-            except IndexError:
+            except IndexError as exc:
                 raise IndexError(
-                    "You tried to access process {0} in a "
-                    "data set with {1} processes.".format(i, self.n_processes)
-                )
+                    f"You tried to access process {i} in a data set with "
+                    f"{self.n_processes} processes."
+                ) from exc
 
         return bs_symbol_array, bs_past_symbol_array, bs_current_symbol_array
 
-    def load_Rudelt_data(self):
+    def load_rudelt_data(self):
         """
         Load the Rudelt data into the data_spiketime object for testing the estimators and optimization algorithm
             References:

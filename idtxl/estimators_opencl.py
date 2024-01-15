@@ -20,7 +20,7 @@ except ImportError as err:
     )
 
 logger = logging.getLogger(__name__)
-C = 1024 ** 2
+C = 1024**2
 
 
 class OpenCLKraskov(Estimator):
@@ -250,7 +250,7 @@ class OpenCLKraskovMI(OpenCLKraskov):
         # Shift variables to calculate a lagged MI.
         if self.settings["lag_mi"] > 0:
             var1 = var1[: -self.settings["lag_mi"], :]
-            var2 = var2[self.settings["lag_mi"]:, :]
+            var2 = var2[self.settings["lag_mi"] :, :]
         self._check_number_of_points(var1.shape[0])
         signallength = var1.shape[0]
         chunklength = signallength // n_chunks

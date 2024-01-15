@@ -1,6 +1,5 @@
 import numpy as np
-from scipy.stats import hypergeom
-from scipy.stats import binom
+from scipy.stats import binom, hypergeom
 
 
 class SignificantSubgraphMining:

@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 
-'''
+"""
     *
     * testRSAll_call.py
     *
     *  Created on: 2016-03-23
     *      Author: mwibral
     *
-'''
+"""
 
-from clKnnLibrary import *
-
-import numpy as np
 import time
 
+import numpy as np
+from clKnnLibrary import *
+
 # main function
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     # GPU INITIALIZATION
     gpuid = int(0)
@@ -23,46 +23,56 @@ if __name__ == '__main__':
     nchunkspergpu = int(1)
 
     pointset_orig = np.array(
-                        [
-                         (0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 2.0, 0.0, -2.0, 0.0, -3.0, -4.0 ),
-                         (0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 0.0, 2.0, 0.0, -2.0, 0.0, 0.0 )
-                          ], dtype=np.float32 )
+        [
+            (0.0, 1.0, 0.0, -1.0, 0.0, 1.0, 2.0, 0.0, -2.0, 0.0, -3.0, -4.0),
+            (0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 0.0, 2.0, 0.0, -2.0, 0.0, 0.0),
+        ],
+        dtype=np.float32,
+    )
     queryset_orig = pointset_orig  # important! function does not work without this!
 
     print(pointset_orig.flags)
 
     pointsdim = int(pointset_orig.shape[0])
-    chunksize   =int(pointset_orig.shape[1]);
+    chunksize = int(pointset_orig.shape[1])
     signallengthpergpu = int(nchunkspergpu * chunksize)
 
-    #Create an array of zeros for npointsrange, fill in pointset with a random vector, and start vecradius as an array of ones
+    # Create an array of zeros for npointsrange, fill in pointset with a random vector, and start vecradius as an array of ones
     npointsrange = np.zeros((queryset_orig.shape[1]), dtype=np.int32)
 
     ####################
     # test KNN search
-    #DATA INITIALIZATION
+    # DATA INITIALIZATION
     kth = int(8)
     theiler = 0
 
-    #Create an array of zeros for indexes and distances, and random array for pointset
+    # Create an array of zeros for indexes and distances, and random array for pointset
     indexes = np.zeros((kth, signallengthpergpu), dtype=np.int32)
     distances = np.zeros((kth, signallengthpergpu), dtype=np.float32)
 
     # make deep copies of the original data to avoid any side effects
     pointset = pointset_orig.copy()
     queryset = queryset_orig.copy()
-    #GPU Execution
+    # GPU Execution
     start = time.time()
-    correct = clFindKnn(indexes, distances, pointset.transpose(),
-                        queryset.transpose(), kth, thelier, nchunkspergpu,
-                        pointsdim, signallengthpergpu, gpuid)
+    correct = clFindKnn(
+        indexes,
+        distances,
+        pointset.transpose(),
+        queryset.transpose(),
+        kth,
+        thelier,
+        nchunkspergpu,
+        pointsdim,
+        signallengthpergpu,
+        gpuid,
+    )
     end = time.time()
 
-
     if correct == 0:
-        print( "GPU execution failed")
+        print("GPU execution failed")
     else:
-        print(("Execution time: %f" %(end - start)))
+        print(("Execution time: %f" % (end - start)))
         print(pointset)
         print("Array of distances")
         print(distances)
@@ -70,16 +80,25 @@ if __name__ == '__main__':
         print(indexes)
 
     # range searches
-    vecradius =  distances[-1, :]
+    vecradius = distances[-1, :]
 
     # with original pointset
     pointset = pointset_orig.copy()
     queryset = queryset_orig.copy()
 
-    correct = clFindRSAll(npointsrange, pointset, queryset, vecradius, theiler,
-                          nchunkspergpu, pointsdim, signallengthpergpu, gpuid)
+    correct = clFindRSAll(
+        npointsrange,
+        pointset,
+        queryset,
+        vecradius,
+        theiler,
+        nchunkspergpu,
+        pointsdim,
+        signallengthpergpu,
+        gpuid,
+    )
     if correct == 0:
-        print ("GPU OpenCL execution failed")
+        print("GPU OpenCL execution failed")
     else:
         print("Points strictly inside radius")
         print(npointsrange)
@@ -88,11 +107,19 @@ if __name__ == '__main__':
     pointset = pointset_orig.copy()
     queryset = queryset_orig.copy()
 
-    correct = clFindRSAll(npointsrange, pointset.transpose(), queryset.transpose(),
-                          vecradius, theiler, nchunkspergpu, pointsdim,
-                          signallengthpergpu, gpuid)
+    correct = clFindRSAll(
+        npointsrange,
+        pointset.transpose(),
+        queryset.transpose(),
+        vecradius,
+        theiler,
+        nchunkspergpu,
+        pointsdim,
+        signallengthpergpu,
+        gpuid,
+    )
     if correct == 0:
-        print ("GPU OpenCL execution failed")
+        print("GPU OpenCL execution failed")
         npointsrange_correct = npointsrange
     else:
         print("Points.transpose() strictly inside radius")
@@ -102,11 +129,19 @@ if __name__ == '__main__':
     pointset = pointset_orig.copy()
     queryset = queryset_orig.copy()
 
-    correct = clFindRSAll(npointsrange, pointset.transpose().copy(),
-                          queryset.transpose().copy(), vecradius, theiler,
-                          nchunkspergpu, pointsdim, signallengthpergpu, gpuid)
+    correct = clFindRSAll(
+        npointsrange,
+        pointset.transpose().copy(),
+        queryset.transpose().copy(),
+        vecradius,
+        theiler,
+        nchunkspergpu,
+        pointsdim,
+        signallengthpergpu,
+        gpuid,
+    )
     if correct == 0:
-        print ("GPU OpenCL execution failed")
+        print("GPU OpenCL execution failed")
     else:
         print("Points.transpose().copy() strictly inside radius")
         print(npointsrange)
@@ -115,11 +150,19 @@ if __name__ == '__main__':
     pointset = pointset_orig.copy()
     queryset = queryset_orig.copy()
 
-    correct = clFindRSAll(npointsrange, np.asfortranarray(pointset),
-                          np.asfortranarray(queryset), vecradius, theiler,
-                          nchunkspergpu, pointsdim, signallengthpergpu, gpuid)
+    correct = clFindRSAll(
+        npointsrange,
+        np.asfortranarray(pointset),
+        np.asfortranarray(queryset),
+        vecradius,
+        theiler,
+        nchunkspergpu,
+        pointsdim,
+        signallengthpergpu,
+        gpuid,
+    )
     if correct == 0:
-        print ("GPU OpenCL execution failed")
+        print("GPU OpenCL execution failed")
     else:
         print("np.asfortranarray(Points) strictly inside radius")
         print(npointsrange)
@@ -128,11 +171,19 @@ if __name__ == '__main__':
     pointset = pointset_orig.copy()
     queryset = queryset_orig.copy()
 
-    correct = clFindRSAll(npointsrange, np.ascontiguousarray(pointset),
-                          np.ascontiguousarray(queryset), vecradius, theiler,
-                          nchunkspergpu, pointsdim, signallengthpergpu, gpuid)
+    correct = clFindRSAll(
+        npointsrange,
+        np.ascontiguousarray(pointset),
+        np.ascontiguousarray(queryset),
+        vecradius,
+        theiler,
+        nchunkspergpu,
+        pointsdim,
+        signallengthpergpu,
+        gpuid,
+    )
     if correct == 0:
-        print ("GPU OpenCL execution failed")
+        print("GPU OpenCL execution failed")
     else:
         print("np.ascontiguousarray(Points) strictly inside radius")
         print(npointsrange)

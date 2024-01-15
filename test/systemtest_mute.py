@@ -1,7 +1,8 @@
 import pickle
 import time
-from idtxl.multivariate_te import MultivariateTE
+
 from idtxl.data import Data
+from idtxl.multivariate_te import MultivariateTE
 
 start_time = time.time()
 data = Data()  # initialise an empty data object

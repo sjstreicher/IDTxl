@@ -55,6 +55,8 @@ class ActiveInformationStorage(SingleProcessAnalysis):
             p-value of AIS
     """
 
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(self):
         self.process = None
         self.pvalue = None
