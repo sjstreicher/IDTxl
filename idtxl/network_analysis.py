@@ -217,10 +217,8 @@ class NetworkAnalysis:
         # average estimator. Internally, the average estimator is used for
         # building the non-uniform embedding, etc. The local estimator is used
         # to estimate single-link MI/TE or single-process AIS in the end.
-        try:
-            estimator = find_estimator(self.settings["cmi_estimator"])
-        except KeyError as exc:
-            raise RuntimeError("Please provide an estimator class or name!") from exc
+        if "cmi_estimator" not in self.settings:
+            raise RuntimeError("Estimator was not specified!")
 
         if self.settings["local_values"]:
             self.settings["local_values"] = False

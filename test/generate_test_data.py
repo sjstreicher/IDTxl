@@ -1,7 +1,7 @@
 """Generate test data for IDTxl network comparison unit and system tests.
 
 Generate test data for IDTxl network comparison unit and system tests. Simulate
-discrete and continous data from three correlated Gaussian data sets. Perform
+discrete and continuous data from three correlated Gaussian data sets. Perform
 network inference using bivariate/multivariate mutual information (MI)/transfer
 entropy (TE) analysis. Results are saved used for unit and system testing of
 network comparison (systemtest_network_comparison.py).

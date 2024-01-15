@@ -1,13 +1,17 @@
+"""This script uses the Lorenz 2 example to test the runtime scaling using
+multiprocessing and mpi.
+"""
+
+import argparse
 import os
 import time
-import argparse
-import numpy as np
-from idtxl.multivariate_te import MultivariateTE
-from idtxl.data import Data
 
-"""
-This script uses the Lorenz 2 example to test the runtime scaling using multiprocessing and mpi.
-"""
+import numpy as np
+
+from idtxl.data import Data
+from idtxl.multivariate_te import MultivariateTE
+
+# pylint: disable=missing-function-docstring
 
 
 def profile_lorenz_2(n_java_threads, multiprocessing, n_processes, mpi, n_workers):
@@ -49,13 +53,13 @@ def profile_lorenz_2(n_java_threads, multiprocessing, n_processes, mpi, n_worker
 
     # Create results file if it doesn't exist
     if not os.path.exists("performancetest_lorenz_2_runtimes.csv"):
-        with open("performancetest_lorenz_2_runtimes.csv", "w") as f:
+        with open("performancetest_lorenz_2_runtimes.csv", "w", encoding="utf-8") as f:
             f.write(
                 "n_java_threads,multiprocessing,n_processes,mpi,max_workers,runtime\n"
             )
 
     # Append runtime to file
-    with open("performancetest_lorenz_2_runtimes.csv", "a") as f:
+    with open("performancetest_lorenz_2_runtimes.csv", "a", encoding="utf-8") as f:
         f.write(
             f"{n_java_threads},{multiprocessing},{n_processes},{mpi},{n_workers},{runtime}\n"
         )

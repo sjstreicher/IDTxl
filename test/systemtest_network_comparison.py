@@ -2,7 +2,7 @@
 """Run system tests for network comparison.
 
 Run system tests for network comparison consisting of larger problems and
-results from diffenrent network inference algorithms (bivariate/multivariate
+results from different network inference algorithms (bivariate/multivariate
 mutual information (MI) or transfer entropy (TE)). Test Gaussian, discrete, and
 the Kraskov estimator.
 """
@@ -29,7 +29,7 @@ def test_network_comparison():
 
     # Comparison settings.
     res = pickle.load(
-        open("{0}discrete_results_mte_JidtDiscreteCMI.p".format(path), "rb")
+        open(f"{path}discrete_results_mte_JidtDiscreteCMI.p", "rb")
     )  # load discrete results to get alphabet sizes
     comp_settings = {
         "cmi_estimator": "JidtKraskovCMI",

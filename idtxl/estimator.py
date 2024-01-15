@@ -89,6 +89,39 @@ def get_estimator(est, settings):
 
     Returns
         Estimator
+            Instance of the requested estimator or MPIEstimator
+    """
+
+    # Check if MPI flag is set to True
+    if settings.get("MPI", False):
+        settings_mpi = settings.copy()
+
+        # Remove MPI flag to avoid infinite recursion
+        del settings_mpi["MPI"]
+
+        # Import just in time to avoid cyclic import
+        from .estimators_mpi import MPIEstimator
+
+        return MPIEstimator(est, settings_mpi)
+
+    # Otherwise find Estimator and return instance
+    EstimatorClass = _find_estimator(est)
+
+    return EstimatorClass(settings)
+
+
+def get_estimator(est, settings):
+    """Factory method that creates an Estimator instance with the given settings.
+
+    If the MPI flag is set to True, return an MPIEstimator instead.
+
+    Args:
+        est : str | Class
+            name of an estimator class implemented in IDTxl or custom estimator
+            class
+
+    Returns
+        Estimator
             Instance of the requestet estimator or MPIEstimator
     """
 
