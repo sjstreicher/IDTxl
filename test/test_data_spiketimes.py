@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 
-from idtxl.data_spiketime import Data_spiketime
+from idtxl.data_spiketime import DataSpiketime
 
 
 def test_set_data():
@@ -16,7 +16,7 @@ def test_set_data():
     spiketimedata = np.empty(shape=(1), dtype=np.ndarray)
     spiketimedata[0] = spiketimes
 
-    data1 = Data_spiketime()
+    data1 = DataSpiketime()
     data1.set_data(spiketimedata)
 
     assert (data1.data[0].T == spiketimes.T - min(spiketimes)).all(), (
@@ -39,7 +39,7 @@ def test_set_data():
             )
             spiketimedata2[i] = new[0:sampl]
 
-    data2 = Data_spiketime()
+    data2 = DataSpiketime()
     data2.set_data(spiketimedata2)
 
     for i in range(nr_processes):
@@ -50,8 +50,8 @@ def test_set_data():
 
 def test_load_Rudelt():
     """Test loading Rudelt data."""
-    data = Data_spiketime()  # initialise empty data object
-    data.load_Rudelt_data()  # load Rudelt spike time data
+    data = DataSpiketime()  # initialise empty data object
+    data.load_rudelt_data()  # load Rudelt spike time data
 
     spiketimes = np.loadtxt(
         os.path.join(os.path.dirname(__file__), "data/spike_times.dat"), dtype=float
@@ -87,7 +87,7 @@ def test_get_realisations_symbols():
             nr_spikes[i] = sampl
             spiketimedata2[i] = new[0:sampl]
 
-    data = Data_spiketime()
+    data = DataSpiketime()
     data.set_data(spiketimedata2)
 
     # get realisation of single process
@@ -204,7 +204,7 @@ def test_get_bootstrap_realisations():
             nr_spikes[i] = sampl
             spiketimedata2[i] = new[0:sampl]
 
-    data = Data_spiketime()
+    data = DataSpiketime()
     data.set_data(spiketimedata2)
 
     # get bootstrap realisation of single process
@@ -298,8 +298,8 @@ def test_get_bootstrap_realisations():
 
 
 def test_get_recording_length():
-    data = Data_spiketime()  # initialise empty data object
-    data.load_Rudelt_data()  # load Rudelt spike time data
+    data = DataSpiketime()  # initialise empty data object
+    data.load_rudelt_data()  # load Rudelt spike time data
 
     record_length = data.get_recording_length(0)
 
@@ -309,8 +309,8 @@ def test_get_recording_length():
 
 
 def test_get_firingrate():
-    data = Data_spiketime()  # initialise empty data object
-    data.load_Rudelt_data()  # load Rudelt spike time data
+    data = DataSpiketime()  # initialise empty data object
+    data.load_rudelt_data()  # load Rudelt spike time data
 
     firingrate = data.get_firingrate(0, 0.005)
 
@@ -320,8 +320,8 @@ def test_get_firingrate():
 
 
 def test_get_H_spiking():
-    data = Data_spiketime()  # initialise empty data object
-    data.load_Rudelt_data()  # load Rudelt spike time data
+    data = DataSpiketime()  # initialise empty data object
+    data.load_rudelt_data()  # load Rudelt spike time data
 
     Hspiking = data.get_H_spiking(0, 0.005)
     assert (
@@ -354,7 +354,7 @@ def test_get_realisations():
             nr_spikes[i] = sampl
             spiketimedata2[i] = new[0:sampl]
 
-    data = Data_spiketime()
+    data = DataSpiketime()
     data.set_data(spiketimedata2)
 
     # get realisation of single process

@@ -4,7 +4,7 @@ Before running this demo, make sure to run the setup file
 
 >>> python3 setup_hde_fast_embedding.py build_ext --inplace
 
-to build the fast embedding cython module. You may have to copy the module from
+to build the fast embedding Cython module. You may have to copy the module from
 the generated build folder into the IDTXL/idtxl folder.
 
 To check if the setup was successful, run the fast embedding test in the test
@@ -15,13 +15,13 @@ folder:
 # Import classes
 import numpy as np
 
-from idtxl.data_spiketime import Data_spiketime
+from idtxl.data_spiketime import DataSpiketime
 from idtxl.embedding_optimization_ais_rudelt import OptimizationRudelt
 
 # a) Generate test data
 print("\nTest optimization_Rudelt using BBC estimator on Rudelt data")
-data = Data_spiketime()  # initialise empty data object
-data.load_Rudelt_data()  # load Rudelt spike time data
+data = DataSpiketime()  # initialise empty data object
+data.load_rudelt_data()  # load Rudelt spike time data
 
 # b) Initialise analysis object and define settings
 # Run optimization with the Bayesian bias criterion (BBC) (alternatively, set

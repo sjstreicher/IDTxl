@@ -7,10 +7,10 @@ from pathlib import Path
 from sys import stderr
 
 import numpy as np
-from scipy.optimize import newton
+from scipy.optimize import newtonDataSpiketime
 
 import idtxl.hde_utils as utl
-from idtxl.data_spiketime import Data_spiketime
+from idtxl.data_spiketime import DataSpiketime
 from idtxl.estimators_Rudelt import RudeltBBCEstimator, RudeltShufflingEstimator
 from idtxl.results import DotDict, ResultsSingleProcessRudelt
 
@@ -991,12 +991,12 @@ class OptimizationRudelt:
                 .eps images are created for each optimized process containing:
                     - optimized values for the process
                     - graph for the history dependence
-                    - graph for auto mutual information (if calculated)
+                    - graDataSpiketimetual information (if calculated)
 
         """
 
         # check input data
-        if type(data) != Data_spiketime:
+        if type(data) != DataSpiketime:
             raise ValueError(
                 "Input Data nneds to be Data_spiketime object but is defined as: "
                 "{0}.".format(type(data))

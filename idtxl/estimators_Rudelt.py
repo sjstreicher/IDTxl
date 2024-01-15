@@ -15,7 +15,7 @@ from idtxl.estimator import Estimator
 FAST_EMBEDDING_AVAILABLE = True
 try:
     import idtxl.hde_fast_embedding as fast_emb
-except:
+except ImportError:
     FAST_EMBEDDING_AVAILABLE = False
     print(
         """

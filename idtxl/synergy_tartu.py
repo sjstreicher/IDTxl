@@ -545,8 +545,8 @@ def pid(pdf_dirty, cone_solver="ECOS", output=0, **solver_args):
         solver.verbose = True
 
     ecos_keep_solver_obj = False
-    if "keep_solver_object" in solver_args.keys():
-        if solver_args["keep_solver_object"] == True:
+    if "keep_solver_object" in solver_args:
+        if solver_args["keep_solver_object"] is True:
             ecos_keep_solver_obj = True
         del solver_args["keep_solver_object"]
 
@@ -568,12 +568,11 @@ def pid(pdf_dirty, cone_solver="ECOS", output=0, **solver_args):
         )
         if ecos_keep_solver_obj:
             return solver
-        else:
-            raise BROJA_2PID_Exception(
-                "BROJA_2PID_Exception: Cone Programming solver failed to find "
-                "(near) optimal solution. Please report the input probability "
-                "density function to abdullah.makkeh@gmail.com"
-            )
+        raise BROJA_2PID_Exception(
+            "BROJA_2PID_Exception: Cone Programming solver failed to find "
+            "(near) optimal solution. Please report the input probability "
+            "density function to abdullah.makkeh@gmail.com"
+        )
 
     if output > 0:
         print("\nBROJA_2PID: done.")

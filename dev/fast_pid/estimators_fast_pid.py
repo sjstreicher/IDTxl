@@ -10,36 +10,36 @@ import numpy as np
 def pid(s1, s2, t, cfg):
     """Fast implementation of the PID estimator."""
     if s1.ndim != 1 or s2.ndim != 1 or t.ndim != 1:
-        raise ValueError("Inputs s1, s2, target have to be vectors" "(1D-arrays).")
+        raise ValueError("Inputs s1, s2, target have to be vectors (1D-arrays).")
     if len(t) != len(s1) or len(t) != len(s2):
         raise ValueError("Number of samples s1, s2 and t must be equal")
     try:
         alph_s1 = cfg["alph_s1"]
-    except TypeError:
-        raise TypeError("The cfg argument should be a dictionary.")
-    except KeyError:
-        raise KeyError('"alph_s1" is missing from the cfg dictionary.')
+    except TypeError as exc:
+        raise TypeError("The cfg argument should be a dictionary.") from exc
+    except KeyError as exc:
+        raise KeyError('"alph_s1" is missing from the cfg dictionary.') from exc
     try:
         alph_s2 = cfg["alph_s2"]
-    except KeyError:
-        raise KeyError('"alph_s2" is missing from the cfg dictionary.')
+    except KeyError as exc:
+        raise KeyError('"alph_s2" is missing from the cfg dictionary.') from exc
     try:
         alph_t = cfg["alph_t"]
-    except KeyError:
-        raise KeyError('"alph_t" is missing from the cfg dictionary.')
+    except KeyError as exc:
+        raise KeyError('"alph_t" is missing from the cfg dictionary.') from exc
     try:
         max_unsuc_swaps_row_parm = cfg["max_unsuc_swaps_row_parm"]
-    except KeyError:
+    except KeyError as exc:
         raise KeyError(
-            '"max_unsuc_swaps_row_parm" is missing from the cfg' "dictionary."
-        )
+            '"max_unsuc_swaps_row_parm" is missing from the cfg dictionary.'
+        ) from exc
     try:
         num_reps = cfg["num_reps"]
-    except KeyError:
-        raise KeyError('"num_reps" is missing from the cfg dictionary.')
+    except KeyError as exc:
+        raise KeyError('"num_reps" is missing from the cfg dictionary.') from exc
     if num_reps > 63:
         raise ValueError(
-            "Number of reps must be 63 or less to prevent integer" " overflow"
+            "Number of reps must be 63 or less to prevent integer overflow"
         )
     try:
         max_iters = cfg["max_iters"]
@@ -55,7 +55,7 @@ def pid(s1, s2, t, cfg):
     num_pos_swaps = alph_t * alph_s1 * (alph_s1 - 1) * alph_s2 * (alph_s2 - 1)
     max_unsuc_swaps_row = np.floor(num_pos_swaps * max_unsuc_swaps_row_parm)
 
-    # -- CALCULATE PROBABLITIES -- #
+    # -- CALCULATE PROBABILITIES -- #
 
     # Declare arrays for counts
     t_count = np.zeros(alph_t, dtype=np.int)
@@ -101,7 +101,6 @@ def pid(s1, s2, t, cfg):
 
     # Replication loop
     for rep in reps:
-
         # The prob_inc = 1 / (number of samples * repeated doubling)
         # THIS MAY NEED SOME TIDYING
         prob_inc = np.multiply(
@@ -114,7 +113,6 @@ def pid(s1, s2, t, cfg):
 
         # SWAP LOOP
         for attempt_swap in range(0, max_iters):
-
             # Pick a random candidate from the targets
             t_cand = np.random.randint(0, alph_t)
             s1_cand = np.random.randint(0, alph_s1)
@@ -135,7 +133,6 @@ def pid(s1, s2, t, cfg):
                 and joint_s1_s2_prob[s1_cand, s2_cand] >= prob_inc
                 and joint_s1_s2_prob[s1_prim, s2_prim] >= prob_inc
             ):
-
                 joint_t_s1_s2_prob[t_cand, s1_cand, s2_cand] -= prob_inc
                 joint_t_s1_s2_prob[t_cand, s1_prim, s2_prim] -= prob_inc
                 joint_t_s1_s2_prob[t_cand, s1_cand, s2_prim] += prob_inc
@@ -210,7 +207,6 @@ def _cmi_prob(
     for sym_s1 in range(0, alph_s1):
         for sym_s2cond in range(0, alph_s2cond):
             for sym_t in range(0, alph_t):
-
                 if (
                     s2cond_prob[sym_s2cond]
                     * joint_t_s2cond_prob[sym_t, sym_s2cond]
@@ -218,7 +214,6 @@ def _cmi_prob(
                     * joint_t_s1_s2cond_prob[sym_t, sym_s1, sym_s2cond]
                     > 0
                 ):
-
                     local_contrib = (
                         np.log(joint_t_s1_s2cond_prob[sym_t, sym_s1, sym_s2cond])
                         + np.log(s2cond_prob[sym_s2cond])
@@ -244,9 +239,7 @@ def _mi_prob(s1_prob, s2_prob, joint_s1_s2_prob):
 
     for sym_s1 in range(0, alph_s1):
         for sym_s2 in range(0, alph_s2):
-
             if s1_prob[sym_s1] * s2_prob[sym_s2] * joint_s1_s2_prob[sym_s1, sym_s2] > 0:
-
                 local_contrib = (
                     np.log(joint_s1_s2_prob[sym_s1, sym_s2])
                     - np.log(s1_prob[sym_s1])

@@ -1,11 +1,11 @@
 """System test for Rudelt optimization on example data (creating result image)."""
 
-from idtxl.data_spiketime import Data_spiketime
+from idtxl.data_spiketime import DataSpiketime
 from idtxl.embedding_optimization_ais_rudelt import OptimizationRudelt
 
 print("\nTest optimization_rudelt using bbc estimator on Rudelt data")
-data = Data_spiketime()  # initialise empty data object
-data.load_Rudelt_data()  # load Rudelt spike time data
+data = DataSpiketime()  # initialise empty data object
+data.load_rudelt_data()  # load Rudelt spike time data
 
 settings = {
     "embedding_past_range_set": [

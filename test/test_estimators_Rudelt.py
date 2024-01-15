@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from idtxl.data_spiketime import Data_spiketime
+from idtxl.data_spiketime import DataSpiketime
 from idtxl.estimators_Rudelt import (
     RudeltBBCEstimator,
     RudeltNSBEstimatorSymbolsMI,
@@ -13,7 +13,6 @@ from idtxl.estimators_Rudelt import (
 
 
 def test_user_input():
-
     est_nsb = RudeltNSBEstimatorSymbolsMI()
     est_plugin = RudeltPluginEstimatorSymbolsMI()
     est_bbc = RudeltBBCEstimator()
@@ -92,8 +91,8 @@ def test_user_input():
 
 
 def test_nsb_and_plugin_estimator():
-    data = Data_spiketime()
-    data.load_Rudelt_data()
+    data = DataSpiketime()
+    data.load_rudelt_data()
 
     process_list = [0]
     (
@@ -130,8 +129,8 @@ def test_nsb_and_plugin_estimator():
 
 
 def test_bbc_and_shuffling_estimator():
-    data = Data_spiketime()
-    data.load_Rudelt_data()
+    data = DataSpiketime()
+    data.load_rudelt_data()
 
     process_list = [0]
     (
