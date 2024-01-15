@@ -1,10 +1,12 @@
 """System test for multivariate TE using the discrete JIDT estimator."""
 import os
+
 import numpy as np
-from idtxl.multivariate_te import MultivariateTE
-from idtxl.data import Data
 from test_estimators_jidt import _get_gauss_data
+
+from idtxl.data import Data
 from idtxl.idtxl_utils import calculate_mi
+from idtxl.multivariate_te import MultivariateTE
 
 
 def test_multivariate_te_corr_gaussian(estimator=None):

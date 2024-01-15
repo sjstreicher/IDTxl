@@ -1,10 +1,12 @@
 """Provide spiketime data structures for IDTxl analysis."""
 
-import numpy as np
-from sys import stderr
-from scipy.optimize import newton
-import idtxl.hde_utils as utl
 import os
+from sys import stderr
+
+import numpy as np
+from scipy.optimize import newton
+
+import idtxl.hde_utils as utl
 
 VERBOSE = False
 

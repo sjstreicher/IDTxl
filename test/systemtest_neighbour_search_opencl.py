@@ -4,9 +4,10 @@ Tests are based on unit tests by Pedro Mediano. Test if neighbours are
 correctly identified for very large input sizes, in particular at the end of
 individual chunks.
 """
-import pytest
 import numpy as np
-from idtxl.estimators_opencl import OpenCLKraskovMI, OpenCLKraskovCMI
+import pytest
+
+from idtxl.estimators_opencl import OpenCLKraskovCMI, OpenCLKraskovMI
 
 # Skip test module if pyopencl is not installed
 pytest.importorskip("pyopencl")

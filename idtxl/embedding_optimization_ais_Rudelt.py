@@ -1,13 +1,15 @@
 """ Optimization of embedding parameters of spike times using the history dependence estimators """
 
+from pathlib import Path
+from sys import stderr
+
 import numpy as np
 from scipy.optimize import newton
-from sys import stderr
-from idtxl.estimators_Rudelt import RudeltBBCEstimator, RudeltShufflingEstimator
+
 import idtxl.hde_utils as utl
-from idtxl.results import DotDict, ResultsSingleProcessRudelt
-from pathlib import Path
 from idtxl.data_spiketime import Data_spiketime
+from idtxl.estimators_Rudelt import RudeltBBCEstimator, RudeltShufflingEstimator
+from idtxl.results import DotDict, ResultsSingleProcessRudelt
 
 
 # noinspection PyAttributeOutsideInit

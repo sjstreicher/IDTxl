@@ -9,10 +9,10 @@
     *
 '''
 
-from clKnnLibrary import *
+import time
 
 import numpy as np
-import time
+from clKnnLibrary import *
 
 # main function
 if __name__ == '__main__':

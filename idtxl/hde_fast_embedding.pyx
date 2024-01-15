@@ -1,11 +1,14 @@
 # cython: profile=True
 
+from sys import exit, stderr
+
 import numpy as np
+
 import idtxl.hde_fast_embedding_utils as emb
-from sys import stderr, exit
 
 cimport cython
 cimport numpy as np
+
 DTYPE = np.uint64
 ctypedef np.uint64_t DTYPE_t
 

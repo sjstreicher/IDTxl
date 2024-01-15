@@ -8,10 +8,12 @@ the Kraskov estimator.
 """
 import os
 import pickle
+
 import numpy as np
-from idtxl.network_comparison import NetworkComparison
-from idtxl.data import Data
 from generate_test_data import generate_continuous_data, generate_discrete_data
+
+from idtxl.data import Data
+from idtxl.network_comparison import NetworkComparison
 
 
 def test_network_comparison():

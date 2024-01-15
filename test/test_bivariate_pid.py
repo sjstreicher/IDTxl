@@ -1,9 +1,8 @@
 """Provide unit tests for high-level PID estimation."""
-import pytest
 import numpy as np
+
 from idtxl.bivariate_pid import BivariatePID
 from idtxl.data import Data
-from test_estimators_pid import optimiser_missing, longdouble_not_available
 
 
 @optimiser_missing

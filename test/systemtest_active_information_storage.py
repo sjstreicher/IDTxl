@@ -1,6 +1,6 @@
 """System test for AIS estimation on example data."""
-from idtxl.data import Data
 from idtxl.active_information_storage import ActiveInformationStorage
+from idtxl.data import Data
 
 
 def test_active_information_storage_opencl():

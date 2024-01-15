@@ -13,14 +13,14 @@ variables and looks like this:
 """
 import pickle
 from pathlib import Path
+
 import numpy as np
 
-from idtxl.multivariate_te import MultivariateTE
 from idtxl.bivariate_te import BivariateTE
-from idtxl.multivariate_mi import MultivariateMI
-from idtxl.bivariate_mi import BivariateMI
-from idtxl.estimators_jidt import JidtDiscreteCMI
 from idtxl.data import Data
+from idtxl.estimators_jidt import JidtDiscreteCMI
+from idtxl.multivariate_mi import MultivariateMI
+from idtxl.multivariate_te import MultivariateTE
 
 # path = os.path.join(os.path.dirname(__file__) + '/data/')
 path = Path("data/")

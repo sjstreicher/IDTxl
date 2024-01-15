@@ -1,15 +1,17 @@
 """Unit tests for IDTxl I/O functions."""
 import os
-import tempfile
 import pickle
-import pytest
+import tempfile
+
 import numpy as np
+import pytest
 from pkg_resources import resource_filename
+
 from idtxl import idtxl_io as io
 from idtxl import idtxl_utils as utils
 from idtxl.data import Data
-from idtxl.network_comparison import NetworkComparison
 from idtxl.multivariate_te import MultivariateTE
+from idtxl.network_comparison import NetworkComparison
 
 SEED = 0
 
@@ -17,29 +19,28 @@ SEED = 0
 n_nodes = 5
 data_0 = Data()
 data_0.generate_mute_data(500, 5)
-data_1 = Data(np.random.rand(n_nodes, 500, 5), 'psr')
+data_1 = Data(np.random.rand(n_nodes, 500, 5), "psr")
 
-path = os.path.join(os.path.dirname(__file__), 'data/')
-res_0 = pickle.load(open(path + 'mute_results_0.p', 'rb'))
-res_1 = pickle.load(open(path + 'mute_results_1.p', 'rb'))
+path = os.path.join(os.path.dirname(__file__), "data/")
+res_0 = pickle.load(open(path + "mute_results_0.p", "rb"))
+res_1 = pickle.load(open(path + "mute_results_1.p", "rb"))
 
 # Generate network comparison results.
 comp_settings = {
-        'cmi_estimator': 'JidtKraskovCMI',
-        'stats_type': 'independent',
-        'n_perm_max_stat': 50,
-        'n_perm_min_stat': 50,
-        'n_perm_omnibus': 50,
-        'n_perm_max_seq': 50,
-        'alpha_comp': 0.26,
-        'n_perm_comp': 50,
-        'tail': 'two',
-        'permute_in_time': True,
-        'perm_type': 'random'
-        }
+    "cmi_estimator": "JidtKraskovCMI",
+    "stats_type": "independent",
+    "n_perm_max_stat": 50,
+    "n_perm_min_stat": 50,
+    "n_perm_omnibus": 50,
+    "n_perm_max_seq": 50,
+    "alpha_comp": 0.26,
+    "n_perm_comp": 50,
+    "tail": "two",
+    "permute_in_time": True,
+    "perm_type": "random",
+}
 comp = NetworkComparison()
-res_within = comp.compare_within(
-    comp_settings, res_0, res_1, data_0, data_1)
+res_within = comp.compare_within(comp_settings, res_0, res_1, data_0, data_1)
 
 
 def test_export_networkx():
@@ -49,47 +50,49 @@ def test_export_networkx():
     data = Data(seed=SEED)
     data.generate_mute_data(500, 5)
     settings = {
-        'cmi_estimator': 'JidtKraskovCMI',
-        'noise_level': 0,
-        'n_perm_max_stat': 21,
-        'n_perm_min_stat': 21,
-        'n_perm_max_seq': 21,
-        'n_perm_omnibus': 21,
-        'max_lag_sources': max_lag,
-        'min_lag_sources': 1,
-        'max_lag_target': max_lag}
+        "cmi_estimator": "JidtKraskovCMI",
+        "noise_level": 0,
+        "n_perm_max_stat": 21,
+        "n_perm_min_stat": 21,
+        "n_perm_max_seq": 21,
+        "n_perm_omnibus": 21,
+        "max_lag_sources": max_lag,
+        "min_lag_sources": 1,
+        "max_lag_target": max_lag,
+    }
     target = 3
     sources = [0, 4]
     te = MultivariateTE()
-    results = te.analyse_single_target(
-        settings, data, target=target, sources=sources)
-    weights = 'binary'
+    results = te.analyse_single_target(settings, data, target=target, sources=sources)
+    weights = "binary"
     adj_matrix = results.get_adjacency_matrix(weights=weights, fdr=False)
-    digraph = io.export_networkx_graph(
-        adjacency_matrix=adj_matrix, weights=weights)
+    digraph = io.export_networkx_graph(adjacency_matrix=adj_matrix, weights=weights)
     np.testing.assert_array_equal(
-        np.sort(digraph.nodes), np.arange(data.n_processes),
-        err_msg='Wrong nodes in exported DiGraph.')
+        np.sort(digraph.nodes),
+        np.arange(data.n_processes),
+        err_msg="Wrong nodes in exported DiGraph.",
+    )
 
     # raise AssertionError('Test not yet implemented.')
     # Test export of networx graph for network inference results.
-    weights = 'binary'
+    weights = "binary"
     adj_matrix = res_0.get_adjacency_matrix(weights=weights, fdr=False)
     io.export_networkx_graph(adjacency_matrix=adj_matrix, weights=weights)
 
     # Test export of source graph
     for s in [True, False]:
         io.export_networkx_source_graph(
-            results=res_0, target=1, sign_sources=s, fdr=False)
+            results=res_0, target=1, sign_sources=s, fdr=False
+        )
 
     # Test export of networx graph for network comparison results.
-    for weight in ['union', 'comparison', 'pvalue', 'diff_abs']:
+    for weight in ["union", "comparison", "pvalue", "diff_abs"]:
         adj_matrix = res_within.get_adjacency_matrix(weights=weight)
-        io.export_networkx_graph(adjacency_matrix=adj_matrix,
-                                 weights=weight)
+        io.export_networkx_graph(adjacency_matrix=adj_matrix, weights=weight)
         for s in [True, False]:
             io.export_networkx_source_graph(
-                    results=res_0, target=1, sign_sources=s, fdr=False)
+                results=res_0, target=1, sign_sources=s, fdr=False
+            )
 
 
 def test_export_brain_net():
@@ -104,49 +107,59 @@ def test_export_brain_net():
     # res_1 = pickle.load(open(path + 'mute_results_1.p', 'rb'))
 
     # Test export of network inference results.
-    outfile = '{0}brain_net'.format(path)
+    outfile = "{0}brain_net".format(path)
     mni_coord = np.random.randint(10, size=(n_nodes, 3))
     node_color = np.random.randint(10, size=n_nodes)
     node_size = np.random.randint(10, size=n_nodes)
-    labels = ['node_0', 'node_1', 'node_2', 'node_3', 'node_4']
+    labels = ["node_0", "node_1", "node_2", "node_3", "node_4"]
     adj_matrix = res_0.get_adjacency_matrix(
-        weights='max_te_lag', fdr=False,)
-    io.export_brain_net_viewer(adjacency_matrix=adj_matrix,
-                               mni_coord=mni_coord,
-                               file_name=outfile,
-                               labels=labels,
-                               node_color=node_color,
-                               node_size=node_size)
+        weights="max_te_lag",
+        fdr=False,
+    )
+    io.export_brain_net_viewer(
+        adjacency_matrix=adj_matrix,
+        mni_coord=mni_coord,
+        file_name=outfile,
+        labels=labels,
+        node_color=node_color,
+        node_size=node_size,
+    )
 
     # Test export of network comparison results.
-    for weight in ['union', 'comparison', 'pvalue', 'diff_abs']:
+    for weight in ["union", "comparison", "pvalue", "diff_abs"]:
         adj_matrix = res_within.get_adjacency_matrix(weights=weight)
-        io.export_brain_net_viewer(adjacency_matrix=adj_matrix,
-                                   mni_coord=mni_coord,
-                                   file_name=outfile,
-                                   labels=labels,
-                                   node_color=node_color,
-                                   node_size=node_size)
+        io.export_brain_net_viewer(
+            adjacency_matrix=adj_matrix,
+            mni_coord=mni_coord,
+            file_name=outfile,
+            labels=labels,
+            node_color=node_color,
+            node_size=node_size,
+        )
 
     # Test input checks.
     with pytest.raises(AssertionError):  # no. entries in mni matrix
-        io.export_brain_net_viewer(adjacency_matrix=adj_matrix,
-                                   mni_coord=mni_coord[:3, :],
-                                   file_name=outfile)
+        io.export_brain_net_viewer(
+            adjacency_matrix=adj_matrix, mni_coord=mni_coord[:3, :], file_name=outfile
+        )
     with pytest.raises(AssertionError):  # no. coordinates in mni matrix
-        io.export_brain_net_viewer(adjacency_matrix=adj_matrix,
-                                   mni_coord=mni_coord[:, :2],
-                                   file_name=outfile)
+        io.export_brain_net_viewer(
+            adjacency_matrix=adj_matrix, mni_coord=mni_coord[:, :2], file_name=outfile
+        )
     with pytest.raises(AssertionError):  # length label list
-        io.export_brain_net_viewer(adjacency_matrix=adj_matrix,
-                                   mni_coord=mni_coord,
-                                   file_name=outfile,
-                                   labels=['node_1', 'node_2'])
+        io.export_brain_net_viewer(
+            adjacency_matrix=adj_matrix,
+            mni_coord=mni_coord,
+            file_name=outfile,
+            labels=["node_1", "node_2"],
+        )
     with pytest.raises(AssertionError):  # length node color list
-        io.export_brain_net_viewer(adjacency_matrix=adj_matrix,
-                                   mni_coord=mni_coord,
-                                   file_name=outfile,
-                                   node_color=np.arange(n_nodes + 1))
+        io.export_brain_net_viewer(
+            adjacency_matrix=adj_matrix,
+            mni_coord=mni_coord,
+            file_name=outfile,
+            node_color=np.arange(n_nodes + 1),
+        )
 
 
 # def test_import_fieldtrip():
@@ -184,97 +197,120 @@ def test_import_matarray():
 
     # Load hdf5, one to three dimensions.
     data = io.import_matarray(
-            file_name=resource_filename(__name__, 'data/one_dim_v7_3.mat'),
-            array_name='a',
-            dim_order='s',
-            file_version='v7.3',
-            normalise=False)
-    assert data.n_samples == n_samples, (
-        'Wrong number of samples: {0}.'.format(data.n_samples))
-    assert data.n_processes == 1, (
-        'Wrong number of processes: {0}.'.format(data.n_processes))
-    assert data.n_replications == 1, (
-        'Wrong number of replications: {0}.'.format(data.n_replications))
+        file_name=resource_filename(__name__, "data/one_dim_v7_3.mat"),
+        array_name="a",
+        dim_order="s",
+        file_version="v7.3",
+        normalise=False,
+    )
+    assert data.n_samples == n_samples, "Wrong number of samples: {0}.".format(
+        data.n_samples
+    )
+    assert data.n_processes == 1, "Wrong number of processes: {0}.".format(
+        data.n_processes
+    )
+    assert data.n_replications == 1, "Wrong number of replications: {0}.".format(
+        data.n_replications
+    )
 
     data = io.import_matarray(
-            file_name=resource_filename(__name__, 'data/two_dim_v7_3.mat'),
-            array_name='b',
-            dim_order='sp',
-            file_version='v7.3',
-            normalise=False)
-    assert data.n_samples == n_samples, (
-        'Wrong number of samples: {0}.'.format(data.n_samples))
-    assert data.n_processes == n_processes, (
-        'Wrong number of processes: {0}.'.format(data.n_processes))
-    assert data.n_replications == 1, (
-        'Wrong number of replications: {0}.'.format(data.n_replications))
+        file_name=resource_filename(__name__, "data/two_dim_v7_3.mat"),
+        array_name="b",
+        dim_order="sp",
+        file_version="v7.3",
+        normalise=False,
+    )
+    assert data.n_samples == n_samples, "Wrong number of samples: {0}.".format(
+        data.n_samples
+    )
+    assert data.n_processes == n_processes, "Wrong number of processes: {0}.".format(
+        data.n_processes
+    )
+    assert data.n_replications == 1, "Wrong number of replications: {0}.".format(
+        data.n_replications
+    )
 
     data = io.import_matarray(
-            file_name=resource_filename(__name__, 'data/three_dim_v7_3.mat'),
-            array_name='c',
-            dim_order='rsp',
-            file_version='v7.3',
-            normalise=False)
-    assert data.n_samples == n_samples, (
-        'Wrong number of samples: {0}.'.format(data.n_samples))
-    assert data.n_processes == n_processes, (
-        'Wrong number of processes: {0}.'.format(data.n_processes))
-    assert data.n_replications == n_replications, (
-            'Wrong number of replications: {0}.'.format(data.n_replications))
+        file_name=resource_filename(__name__, "data/three_dim_v7_3.mat"),
+        array_name="c",
+        dim_order="rsp",
+        file_version="v7.3",
+        normalise=False,
+    )
+    assert data.n_samples == n_samples, "Wrong number of samples: {0}.".format(
+        data.n_samples
+    )
+    assert data.n_processes == n_processes, "Wrong number of processes: {0}.".format(
+        data.n_processes
+    )
+    assert (
+        data.n_replications == n_replications
+    ), "Wrong number of replications: {0}.".format(data.n_replications)
 
     # Load matlab versions 4, 6, 7.
     file_path = [
-        resource_filename(__name__, 'data/two_dim_v4.mat'),
-        resource_filename(__name__, 'data/two_dim_v6.mat'),
-        resource_filename(__name__, 'data/two_dim_v7.mat')]
-    file_version = ['v4', 'v6', 'v7']
+        resource_filename(__name__, "data/two_dim_v4.mat"),
+        resource_filename(__name__, "data/two_dim_v6.mat"),
+        resource_filename(__name__, "data/two_dim_v7.mat"),
+    ]
+    file_version = ["v4", "v6", "v7"]
     for i in range(3):
-        data = io.import_matarray(file_name=file_path[i],
-                                  array_name='b',
-                                  dim_order='ps',
-                                  file_version=file_version[i],
-                                  normalise=False)
-        assert data.n_processes == n_processes, (
-            'Wrong number of processes'.format(data.n_processes))
-        assert data.n_samples == n_samples, (
-            'Wrong number of samples'.format(data.n_samples))
-        assert data.n_replications == 1, (
-            'Wrong number of replications'.format(data.n_replications))
+        data = io.import_matarray(
+            file_name=file_path[i],
+            array_name="b",
+            dim_order="ps",
+            file_version=file_version[i],
+            normalise=False,
+        )
+        assert data.n_processes == n_processes, "Wrong number of processes".format(
+            data.n_processes
+        )
+        assert data.n_samples == n_samples, "Wrong number of samples".format(
+            data.n_samples
+        )
+        assert data.n_replications == 1, "Wrong number of replications".format(
+            data.n_replications
+        )
 
     # Load wrong file name.
     with pytest.raises(FileNotFoundError):
-        data = io.import_matarray(file_name='test',
-                                  array_name='b',
-                                  dim_order='ps',
-                                  file_version='v6',
-                                  normalise=False)
+        data = io.import_matarray(
+            file_name="test",
+            array_name="b",
+            dim_order="ps",
+            file_version="v6",
+            normalise=False,
+        )
 
     # Test wrong variable name.
     with pytest.raises(RuntimeError):
         data = io.import_matarray(
-            file_name=resource_filename(__name__, 'data/three_dim_v7_3.mat'),
-            array_name='test',
-            dim_order='rsp',
-            file_version='v7.3',
-            normalise=False)
+            file_name=resource_filename(__name__, "data/three_dim_v7_3.mat"),
+            array_name="test",
+            dim_order="rsp",
+            file_version="v7.3",
+            normalise=False,
+        )
 
     # Test wrong dim order.
     with pytest.raises(RuntimeError):
         data = io.import_matarray(
-            file_name=resource_filename(__name__, 'data/three_dim_v7_3.mat'),
-            array_name='c',
-            dim_order='rp',
-            file_version='v7.3',
-            normalise=False)
+            file_name=resource_filename(__name__, "data/three_dim_v7_3.mat"),
+            array_name="c",
+            dim_order="rp",
+            file_version="v7.3",
+            normalise=False,
+        )
 
     # Test wrong file version
     with pytest.raises(RuntimeError):
         data = io.import_matarray(
-            file_name=resource_filename(__name__, 'data/three_dim_v7_3.mat'),
-            array_name='c',
-            dim_order='rp',
-            file_version='v4',
-            normalise=False)
+            file_name=resource_filename(__name__, "data/three_dim_v7_3.mat"),
+            array_name="c",
+            dim_order="rp",
+            file_version="v4",
+            normalise=False,
+        )
 
 
 def test_save_json():
@@ -282,13 +318,14 @@ def test_save_json():
     data = Data()
     data.generate_mute_data(n_samples=100, n_replications=1)
     settings = {
-        'cmi_estimator': 'JidtKraskovCMI',
-        'n_perm_max_stat': 21,
-        'n_perm_min_stat': 21,
-        'n_perm_max_seq': 21,
-        'n_perm_omnibus': 21,
-        'max_lag_sources': 2,
-        'min_lag_sources': 1}
+        "cmi_estimator": "JidtKraskovCMI",
+        "n_perm_max_stat": 21,
+        "n_perm_min_stat": 21,
+        "n_perm_max_seq": 21,
+        "n_perm_omnibus": 21,
+        "max_lag_sources": 2,
+        "min_lag_sources": 1,
+    }
     target = 1
     sources = [0]
     nw = MultivariateTE()
@@ -304,10 +341,10 @@ def test_save_json():
         # settings.
         _save_load_json(nw.settings, file_path)
         # Add numpy array
-        nw.settings['y_test_array'] = np.arange(10)
+        nw.settings["y_test_array"] = np.arange(10)
         _save_load_json(nw.settings, file_path)
         # Add numpy float
-        nw.settings['z_test_float'] = np.float64(10)
+        nw.settings["z_test_float"] = np.float64(10)
         _save_load_json(nw.settings, file_path)
     finally:
         os.remove(file_path)
@@ -320,7 +357,7 @@ def _save_load_json(data, file_path):
     assert utils.equal_dicts(data, d)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_save_json()
     test_export_brain_net()
     test_export_networkx()

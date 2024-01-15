@@ -5,13 +5,14 @@ Simulated delays between the systems are
 \delta_{1->0} = 75.
 """
 import os
-import time
 import pickle
+import time
 from pathlib import Path
+
 import numpy as np
 
-from idtxl.multivariate_te import MultivariateTE
 from idtxl.data import Data
+from idtxl.multivariate_te import MultivariateTE
 
 start_time = time.time()
 # load simulated data from 2 coupled Lorenz systems 1->2, u = 45 ms

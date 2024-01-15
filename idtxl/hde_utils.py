@@ -11,11 +11,12 @@ implemented in idtxl by Michael Lindner, Göttingen 2021
 
 """
 
-import numpy as np
 from collections import Counter
+from datetime import datetime
+
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-from datetime import datetime
+import numpy as np
 
 
 def get_CI_bounds(

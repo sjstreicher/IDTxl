@@ -9,11 +9,10 @@
     *
 '''
 
-from python_to_c import *
-
-import numpy as np
 import time
 
+import numpy as np
+from python_to_c import *
 
 if __name__ == '__main__':
     

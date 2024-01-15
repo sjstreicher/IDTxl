@@ -2,13 +2,15 @@
 
 This module provides unit tests for the AIS analysis class.
 """
-import pytest
 import random as rn
+
 import numpy as np
-from idtxl.data import Data
-from idtxl.active_information_storage import ActiveInformationStorage
-from idtxl.estimators_jidt import JidtDiscreteCMI
+import pytest
 from test_estimators_jidt import jpype_missing
+
+from idtxl.active_information_storage import ActiveInformationStorage
+from idtxl.data import Data
+from idtxl.estimators_jidt import JidtDiscreteCMI
 
 package_missing = False
 try:

@@ -1,7 +1,7 @@
-import pytest
 import numpy as np
-from scipy.stats import hypergeom
-from scipy.stats import binom
+import pytest
+from scipy.stats import binom, hypergeom
+
 from idtxl.postprocessing import SignificantSubgraphMining
 
 # create sample data for tests of subgraph mining methods
@@ -228,7 +228,7 @@ def test_generate_min_p_table():
     ]
 
     # correct minimal p-values for within subject design assuming N=12
-    correct_min_p_values_within = [2 * (1 / 2 ** i) for i in range(13)]
+    correct_min_p_values_within = [2 * (1 / 2**i) for i in range(13)]
 
     assert all(
         np.isclose(SSM.generate_min_p_table("between"), correct_min_p_values_between)

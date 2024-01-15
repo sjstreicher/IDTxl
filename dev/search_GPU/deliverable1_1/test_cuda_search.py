@@ -20,28 +20,32 @@
     python test_cuda_search.py -p 35000000 -g 2  # 1 chunk, 35000000 points, GPU 3
     python test_cuda_search.py -p 500 -c 10  # 10 chunks with 500 points each
 """
-import logging
 import argparse
+import logging
+import time
 from sys import getsizeof
-from python_to_c import *
 
 import numpy as np
-import time
+from python_to_c import *
 
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+logging.basicConfig(format="%(levelname)s:%(message)s", level=logging.DEBUG)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Debug IDTxl CUDA searches')
-    parser.add_argument('--npoints', '-p', default=1000, type=int,
-                        help='No. points per chunk.')
-    parser.add_argument('--ndims', '-d', default=1, type=int,
-                        help='No. dimensions.')
-    parser.add_argument('--nchunks', '-c', default=1, type=int,
-                        help='No. chunks, i.e., search spaces searched in parallel.')
-    parser.add_argument('--gpuid', '-g', default=0, type=int,
-                        help='GPU device ID.')
+    parser = argparse.ArgumentParser(description="Debug IDTxl CUDA searches")
+    parser.add_argument(
+        "--npoints", "-p", default=1000, type=int, help="No. points per chunk."
+    )
+    parser.add_argument("--ndims", "-d", default=1, type=int, help="No. dimensions.")
+    parser.add_argument(
+        "--nchunks",
+        "-c",
+        default=1,
+        type=int,
+        help="No. chunks, i.e., search spaces searched in parallel.",
+    )
+    parser.add_argument("--gpuid", "-g", default=0, type=int, help="GPU device ID.")
 
     args = parser.parse_args()
 
@@ -59,30 +63,50 @@ if __name__ == '__main__':
     indexes = np.zeros((kth, signallengthpergpu), dtype=np.int32)
     distances = np.zeros((kth, signallengthpergpu), dtype=np.float32)
 
-    pointset = np.random.random(
-      (signallengthpergpu, pointsdim)).astype('float32')
+    pointset = np.random.random((signallengthpergpu, pointsdim)).astype("float32")
     queryset = pointset
     print(pointset.shape)
     print(getsizeof(pointset))
 
     # Print memory requirement in MB
     c = 1024**2
-    print('pointset: {0:.2f}, queryset: {1:.2f}, indexes: {2:.2f}, distances: {3:.2f}, TOTAL: {4:.2f} MB'.format(
-      getsizeof(pointset) / c, getsizeof(queryset) / c, getsizeof(indexes) / c,
-      getsizeof(distances) / c,
-      (getsizeof(pointset) + getsizeof(queryset) + getsizeof(indexes) +
-       getsizeof(distances))  / c))
-    print('pointset shape: {}'.format(pointset.shape))
+    print(
+        "pointset: {0:.2f}, queryset: {1:.2f}, indexes: {2:.2f}, distances: {3:.2f}, TOTAL: {4:.2f} MB".format(
+            getsizeof(pointset) / c,
+            getsizeof(queryset) / c,
+            getsizeof(indexes) / c,
+            getsizeof(distances) / c,
+            (
+                getsizeof(pointset)
+                + getsizeof(queryset)
+                + getsizeof(indexes)
+                + getsizeof(distances)
+            )
+            / c,
+        )
+    )
+    print("pointset shape: {}".format(pointset.shape))
 
     # KNN search
     start = time.time()
-    res = testKNN_call_multiGPU(indexes, distances, pointset, queryset, kth, theiler, nchunkspergpu, pointsdim, signallengthpergpu, gpuid)
+    res = testKNN_call_multiGPU(
+        indexes,
+        distances,
+        pointset,
+        queryset,
+        kth,
+        theiler,
+        nchunkspergpu,
+        pointsdim,
+        signallengthpergpu,
+        gpuid,
+    )
     end = time.time()
 
     if res == 0:
         print("\nGPU execution failed")
     else:
-        print("Execution time: {0:.2f} min" .format((end - start) / 60))
+        print("Execution time: {0:.2f} min".format((end - start) / 60))
         print("Array of distances")
         print(distances)
         print("Array of index")
@@ -93,12 +117,20 @@ if __name__ == '__main__':
 
     start = time.time()
     res = testRSAll_call_multiGPU(
-      npointsrange, pointset, queryset, distances, theiler, nchunkspergpu,
-      pointsdim, signallengthpergpu, gpuid)
+        npointsrange,
+        pointset,
+        queryset,
+        distances,
+        theiler,
+        nchunkspergpu,
+        pointsdim,
+        signallengthpergpu,
+        gpuid,
+    )
     end = time.time()
 
     if res == 0:
         print("\nGPU execution failed")
     else:
-        print('Range Search:')
-        print("Execution time: {0:.2f} min" .format((end - start) / 60))
+        print("Range Search:")
+        print("Execution time: {0:.2f} min".format((end - start) / 60))

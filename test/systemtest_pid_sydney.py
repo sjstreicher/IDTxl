@@ -1,8 +1,9 @@
 """Test fast PID estimator on logical AND.
 """
 import random
-import numpy as np
 import time as tm
+
+import numpy as np
 from bitstring import BitArray, Bits
 
 # import estimators_fast_pid as epid

@@ -1,13 +1,14 @@
 """Unit tests for stats module."""
-import pytest
 import numpy as np
-from idtxl import stats
-from idtxl.multivariate_te import MultivariateTE
-from idtxl.active_information_storage import ActiveInformationStorage
-from idtxl.estimators_jidt import JidtDiscreteCMI
-from idtxl.data import Data
-from idtxl.results import ResultsNetworkInference, ResultsSingleProcessAnalysis
+import pytest
 from test_estimators_jidt import _get_gauss_data
+
+from idtxl import stats
+from idtxl.active_information_storage import ActiveInformationStorage
+from idtxl.data import Data
+from idtxl.estimators_jidt import JidtDiscreteCMI
+from idtxl.multivariate_te import MultivariateTE
+from idtxl.results import ResultsNetworkInference, ResultsSingleProcessAnalysis
 
 
 def test_omnibus_test():
