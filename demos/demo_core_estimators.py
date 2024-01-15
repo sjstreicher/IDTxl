@@ -17,16 +17,23 @@ from idtxl.estimators_jidt import (
 )
 from idtxl.estimators_opencl import OpenCLKraskovCMI, OpenCLKraskovMI
 from idtxl.estimators_pid import SydneyPID, TartuPID
+from idtxl.estimators_python import PythonKraskovCMI
 from idtxl.idtxl_utils import calculate_mi
 
 # Generate Gaussian test data
 n = 10000
 covariance = 0.4
-corr_expected = covariance / (1 * np.sqrt(covariance ** 2 + (1 - covariance) ** 2))
+corr_expected = covariance / (1 * np.sqrt(covariance**2 + (1 - covariance) ** 2))
 expected_mi = calculate_mi(corr_expected)
 source_cor = np.random.normal(0, 1, size=n)  # correlated src
 source_uncor = np.random.normal(0, 1, size=n)  # uncorrelated src
 target = covariance * source_cor + (1 - covariance) * np.random.normal(0, 1, size=n)
+
+# Python Kraskov estimators
+settings = {"kraskov_k": 4, "noise_level": 0, "knn_finder": "scipy_kdtree"}
+est = PythonKraskovCMI(settings)
+cmi = est.estimate(source_cor, target, source_uncor)
+print("Estimated CMI: {0:.5f}, expected CMI: {1:.5f}".format(cmi, expected_mi))
 
 # JIDT Discrete estimators
 settings = {"discretise_method": "equal", "n_discrete_bins": 5}

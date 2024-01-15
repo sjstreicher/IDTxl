@@ -53,7 +53,7 @@ class Lattice:
         # dummy expensive function might use dit or networkx functions
         assert self.n < 5, "antichain(n): number of sources should be less than 5"
         achain = []
-        for r in range(1, math.floor((2 ** self.n - 1) / 2) + 2):
+        for r in range(1, math.floor((2**self.n - 1) / 2) + 2):
             # enumerate the power set of the powerset
             for alpha in combinations(self.powerset(), r):
                 flag = 1

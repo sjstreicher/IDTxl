@@ -35,32 +35,32 @@ class NetworkInference(NetworkAnalysis):
         self.pvalue_omnibus = None
         self.statistic_sign_sources = None
         self.pvalues_sign_sources = None
+        self._cmi_estimator = None
+        self.source_set = []
         super().__init__()
 
     def _check_target(self, target, n_processes):
         """Set and check the target provided by the user."""
-        if type(target) is not int or target < 0:
+        if not isinstance(target, int) or target < 0:
             raise RuntimeError(
-                "The index of the target process ({0}) has to "
-                "be an int >= 0.".format(target)
+                f"The index of the target process ({target}) has to " "be an int >= 0."
             )
         if target > n_processes:
             raise RuntimeError(
-                "Trying to analyse target with index {0}, "
-                "which greater than the number of processes in "
-                "the data ({1}).".format(target, n_processes)
+                f"Trying to analyse target with index {target}, which greater than the "
+                f"number of processes in the data ({n_processes})."
             )
         self.target = target
 
     def _check_source_set(self, sources, n_processes):
         """Set default if no source set was provided by the user."""
         if sources == "all":
-            sources = [x for x in range(n_processes)]
+            sources = list(range(n_processes))
             sources.pop(self.target)
-        elif type(sources) is int:
+        elif isinstance(sources, int):
             sources = [sources]
-        elif type(sources) is list:
-            assert type(sources[0]) is int, "Source list has to contain ints."
+        elif isinstance(sources, list):
+            assert isinstance(sources[0], int), "Source list has to contain ints."
         else:
             raise TypeError(
                 "Sources have to be passes as a single int, list " 'of ints or "all".'
@@ -68,28 +68,21 @@ class NetworkInference(NetworkAnalysis):
 
         if self.target in sources:
             raise RuntimeError(
-                "The target ({0}) should not be in the list "
-                "of sources ({1}).".format(self.target, sources)
+                f"The target ({self.target}) should not be in the list of sources ({sources})."
             )
         if max(sources) > n_processes:
             raise RuntimeError(
-                "The list of sources {0} contains indices "
-                "greater than the number of processes {1} in "
-                "the data.".format(sources, n_processes)
+                f"The list of sources {sources} contains indices greater than "
+                f"the number of processes {n_processes} in the data."
             )
         if min(sources) < 0:
             raise RuntimeError(
-                "The source list ({0}) can not contain negative"
-                " indices.".format(sources)
+                f"The source list ({sources}) can not contain negative indices."
             )
 
         self.source_set = sources
         if self.settings["verbose"]:
-            print(
-                "\nTarget: {0} - testing sources {1}".format(
-                    self.target, self.source_set
-                )
-            )
+            print(f"\nTarget: {self.target} - testing sources {self.source_set}")
 
     def _include_candidates(self, candidate_set, data):
         """Include informative candidates into the conditioning set.
@@ -114,7 +107,7 @@ class NetworkInference(NetworkAnalysis):
         """
         success = False
         if self.settings["verbose"]:
-            print("candidate set: {0}".format(self._idx_to_lag(candidate_set)))
+            print(f"candidate set: {self._idx_to_lag(candidate_set)}")
         while candidate_set:
             # Get realisations for all candidates.
             cand_real = data.get_realisations(self.current_value, candidate_set)[0]
@@ -136,8 +129,8 @@ class NetworkInference(NetworkAnalysis):
                 #  we'll terminate the search for more candidates,
                 #  though those identified already remain valid
                 print(
-                    "AlgorithmExhaustedError encountered in estimations: {}. "
-                    "Halting current estimation set.".format(aee.message)
+                    f"AlgorithmExhaustedError encountered in estimations: {aee.message}. "
+                    "Halting current estimation set."
                 )
                 # For now we don't need a stack trace:
                 # traceback.print_tb(aee.__traceback__)
@@ -166,8 +159,7 @@ class NetworkInference(NetworkAnalysis):
                 # check of significance for this candidate, though those
                 # identified already remain valid
                 print(
-                    "AlgorithmExhaustedError encountered in "
-                    "estimations: " + aee.message
+                    f"AlgorithmExhaustedError encountered in estimations: {aee.message}"
                 )
                 print("Halting candidate max stats test")
                 # For now we don't need a stack trace:
@@ -214,7 +206,7 @@ class NetworkInference(NetworkAnalysis):
             data : Data instance
                 input data
         """
-        if type(cond) is str:
+        if isinstance(cond, str):
             # Get realisations and indices of source variables with lag 0. Note
             # that _define_candidates returns tuples with absolute indices and
             # not lags.
@@ -235,10 +227,7 @@ class NetworkInference(NetworkAnalysis):
                     cond = cond[self.target]
                 except KeyError:
                     return  # no additional variables for the current target
-            print(
-                "Adding the following variables to the conditioning set: "
-                "{0}.".format(cond)
-            )
+            print(f"Adding the following variables to the conditioning set: {cond}.")
             cond_idx = self._lag_to_idx(cond)
             self._append_selected_vars(
                 cond_idx, data.get_realisations(self.current_value, cond_idx)[0]
@@ -288,26 +277,24 @@ class NetworkInferenceMI(NetworkInference):
             )
 
         if (
-            type(self.settings["min_lag_sources"]) is not int
+            not isinstance(self.settings["min_lag_sources"], int)
             or self.settings["min_lag_sources"] < 0
         ):
             raise RuntimeError("min_lag_sources has to be an integer >= 0.")
         if (
-            type(self.settings["max_lag_sources"]) is not int
+            not isinstance(self.settings["max_lag_sources"], int)
             or self.settings["max_lag_sources"] < 0
         ):
             raise RuntimeError("max_lag_sources has to be an integer >= 0.")
         if (
-            type(self.settings["tau_sources"]) is not int
+            not isinstance(self.settings["tau_sources"], int)
             or self.settings["tau_sources"] < 0
         ):
             raise RuntimeError("tau_sources must be an integer >= 0.")
         if self.settings["min_lag_sources"] > self.settings["max_lag_sources"]:
             raise RuntimeError(
-                "min_lag_sources ({0}) must be smaller or equal"
-                " to max_lag_sources ({1}).".format(
-                    self.settings["min_lag_sources"], self.settings["max_lag_sources"]
-                )
+                f"min_lag_sources ({self.settings['min_lag_sources']}) must be smaller or equal "
+                f"to max_lag_sources ({self.settings['max_lag_sources']})."
             )
         # max_lag_sources can be 0 for MI estimation, in this case we don't
         # require the tau to be larger than the max lag. Still, tau has to be
@@ -317,10 +304,8 @@ class NetworkInferenceMI(NetworkInference):
             and self.settings["tau_sources"] > self.settings["max_lag_sources"]
         ):
             raise RuntimeError(
-                "tau_sources ({0}) has to be smaller than "
-                "max_lag_sources ({1}).".format(
-                    self.settings["tau_sources"], self.settings["max_lag_sources"]
-                )
+                f"tau_sources ({self.settings['tau_sources']}) has to be smaller than "
+                f"max_lag_sources ({self.settings['max_lag_sources']})."
             )
 
         # Set CMI estimator.
@@ -333,8 +318,8 @@ class NetworkInferenceMI(NetworkInference):
         # Check provided search depths (lags) for sources, set the
         # current_value.
         assert data.n_samples >= self.settings["max_lag_sources"] + 1, (
-            "Not enough samples in data ({0}) to allow for the chosen maximum "
-            "lag ({1})".format(data.n_samples, self.settings["max_lag_sources"])
+            f"Not enough samples in data ({data.n_samples}) to allow for the chosen maximum "
+            f"lag ({self.settings['max_lag_sources']})"
         )
 
         self.current_value = (self.target, self.settings["max_lag_sources"])
@@ -786,16 +771,12 @@ class NetworkInferenceBivariate(NetworkInference):
                     else:
                         re_use = ["var2"]
                         if conditional_realisations_target is None:
-                            conditional_realisations[
-                                i_1:i_2,
-                            ] = temp_cond
+                            conditional_realisations[i_1:i_2,] = temp_cond
                         else:
-                            conditional_realisations[
-                                i_1:i_2,
-                            ] = np.hstack((temp_cond, conditional_realisations_target))
-                    candidate_realisations[
-                        i_1:i_2,
-                    ] = temp_cand
+                            conditional_realisations[i_1:i_2,] = np.hstack(
+                                (temp_cond, conditional_realisations_target)
+                            )
+                    candidate_realisations[i_1:i_2,] = temp_cand
                     i_1 = i_2
                     i_2 += data.n_realisations(self.current_value)
 
@@ -1051,13 +1032,9 @@ class NetworkInferenceMultivariate(NetworkInference):
                     conditional_realisations = None
                     re_use = ["var2", "conditional"]
                 else:
-                    conditional_realisations[
-                        i_1:i_2,
-                    ] = temp_cond
+                    conditional_realisations[i_1:i_2,] = temp_cond
                     re_use = ["var2"]
-                candidate_realisations[
-                    i_1:i_2,
-                ] = temp_cand
+                candidate_realisations[i_1:i_2,] = temp_cand
                 i_1 = i_2
                 i_2 += data.n_realisations(self.current_value)
 

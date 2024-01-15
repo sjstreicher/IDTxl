@@ -1,5 +1,4 @@
 """Provide estimator base class for information theoretic measures."""
-import imp
 import importlib
 import inspect
 import os
@@ -16,12 +15,11 @@ ESTIMATOR_PREFIX = "estimators_"
 
 def _package_contents():
     # Return list of IDTxl modules containing estimators.
-    file, pathname, description = imp.find_module(__package__)
-    if file:
-        raise ImportError("Not a package: %r", __package__)
+    pkg_spec = importlib.util.find_spec(__package__)
+    module_path = pkg_spec.submodule_search_locations[0]
     return [
         os.path.splitext(module)[0]
-        for module in os.listdir(pathname)
+        for module in os.listdir(module_path)
         if (module.endswith(MODULE_EXTENSIONS) and module.startswith(ESTIMATOR_PREFIX))
     ]
 
@@ -91,72 +89,6 @@ def get_estimator(est, settings):
 
     Returns
         Estimator
-            Instance of the requested estimator or MPIEstimator
-    """
-
-    # Check if MPI flag is set to True
-    if settings.get("MPI", False):
-        settings_mpi = settings.copy()
-
-        # Remove MPI flag to avoid infinite recursion
-        del settings_mpi["MPI"]
-
-        # Import just in time to avoid cyclic import
-        from .estimators_mpi import MPIEstimator
-
-        return MPIEstimator(est, settings_mpi)
-
-    # Otherwise find Estimator and return instance
-    EstimatorClass = _find_estimator(est)
-
-    return EstimatorClass(settings)
-
-
-def get_estimator(est, settings):
-    """Factory method that creates an Estimator instance with the given settings.
-
-    If the MPI flag is set to True, return an MPIEstimator instead.
-
-    Args:
-        est : str | Class
-            name of an estimator class implemented in IDTxl or custom estimator
-            class
-
-    Returns
-        Estimator
-            Instance of the requestet estimator or MPIEstimator
-    """
-
-    # Check if MPI flag is set to True
-    if settings.get("MPI", False):
-        settings_mpi = settings.copy()
-
-        # Remove MPI flag to avoid infinite recursion
-        del settings_mpi["MPI"]
-
-        # Import just in time to avoid cyclic import
-        from .estimators_mpi import MPIEstimator
-
-        return MPIEstimator(est, settings_mpi)
-
-    # Otherwise find Estimator and return instance
-    EstimatorClass = _find_estimator(est)
-
-    return EstimatorClass(settings)
-
-
-def get_estimator(est, settings):
-    """Factory method that creates an Estimator instance with the given settings.
-
-    If the MPI flag is set to True, return an MPIEstimator instead.
-
-    Args:
-        est : str | Class
-            name of an estimator class implemented in IDTxl or custom estimator
-            class
-
-    Returns
-        Estimator
             Instance of the requestet estimator or MPIEstimator
     """
 
@@ -199,6 +131,7 @@ class Estimator(metaclass=ABCMeta):
     """
 
     def __init__(self, settings=None):
+        self.settings = settings
         pass
 
     @abstractmethod
@@ -292,8 +225,7 @@ class Estimator(metaclass=ABCMeta):
                 )
             )
 
-    @staticmethod
-    def _ensure_one_dim_input(var):
+    def _ensure_one_dim_input(self, var):
         """Make sure input arrays have one dimension.
 
         Check dimensions of input to AIS and TE estimators. JIDT expects one-

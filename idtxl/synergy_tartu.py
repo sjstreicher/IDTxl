@@ -44,6 +44,7 @@ except ImportError as err:
 log = math.log2
 ln = math.log
 
+
 # ECOS's exp cone: (r,p,q)   w/   q>0  &  exp(r/q) ≤ p/q
 # Translation:     (0,1,2)   w/   2>0  &  0/2      ≤ ln(1/2)
 def r_vidx(i):

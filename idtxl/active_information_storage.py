@@ -56,6 +56,10 @@ class ActiveInformationStorage(SingleProcessAnalysis):
     """
 
     def __init__(self):
+        self.process = None
+        self.pvalue = None
+        self.sign = False
+        self.ais = None
         super().__init__()
 
     def analyse_network(self, settings, data, processes="all"):
@@ -116,13 +120,11 @@ class ActiveInformationStorage(SingleProcessAnalysis):
 
         # Check provided processes for analysis.
         if processes == "all":
-            processes = [t for t in range(data.n_processes)]
-        if (type(processes) is list) and (type(processes[0]) is int):
+            processes = list(range(data.n_processes))
+        if isinstance(processes, list) and isinstance(processes[0], int):
             pass
         else:
-            raise ValueError(
-                "Processes were not specified correctly: " "{0}.".format(processes)
-            )
+            raise ValueError(f"Processes were not specified correctly: {processes}.")
 
         # Check and set defaults for checkpointing.
         self.settings = self._set_checkpointing_defaults(settings, data, [], processes)
@@ -133,14 +135,10 @@ class ActiveInformationStorage(SingleProcessAnalysis):
             n_realisations=data.n_realisations(),
             normalised=data.normalise,
         )
-        for t in range(len(processes)):
+        for t, process in enumerate(processes):
             if settings["verbose"]:
-                print(
-                    "\n####### analysing process {0} of {1}".format(
-                        processes[t], processes
-                    )
-                )
-            res_single = self.analyse_single_process(settings, data, processes[t])
+                print(f"\n####### analysing process {process} of {processes}")
+            res_single = self.analyse_single_process(settings, data, process)
             results.combine_results(res_single)
 
         # Get no. realisations actually used for estimation from single target
@@ -236,9 +234,7 @@ class ActiveInformationStorage(SingleProcessAnalysis):
         # Clean up and return results.
         if self.settings["verbose"]:
             print(
-                "final conditional samples: {0}".format(
-                    self._idx_to_lag(self.selected_vars_full)
-                )
+                f"final conditional samples: {self._idx_to_lag(self.selected_vars_full)}"
             )
         results = ResultsSingleProcessAnalysis(
             n_nodes=data.n_processes,
@@ -268,14 +264,16 @@ class ActiveInformationStorage(SingleProcessAnalysis):
         self.settings.setdefault("tau", 1)
         self.settings.setdefault("local_values", False)
 
-        if type(self.settings["max_lag"]) is not int or (self.settings["max_lag"] < 0):
+        if not isinstance(self.settings["max_lag"], int) or (
+            self.settings["max_lag"] < 0
+        ):
             raise RuntimeError("max_lag has to be an integer >= 0.")
-        if type(self.settings["tau"]) is not int or self.settings["tau"] <= 0:
+        if not isinstance(self.settings["tau"], int) or self.settings["tau"] <= 0:
             raise RuntimeError("tau has to be an integer > 0.")
         if self.settings["tau"] > self.settings["max_lag"]:
             raise RuntimeError(
-                "tau ({0}) has to be equal to or smaller than max_lag ({1})"
-                ".".format(self.settings["tau"], self.settings["max_lag"])
+                f"tau ({self.settings['tau']}) has to be equal to or smaller than max_lag "
+                f"({self.settings['max_lag']})."
             )
 
         # Set CMI estimator.
@@ -285,23 +283,21 @@ class ActiveInformationStorage(SingleProcessAnalysis):
         self._min_stats_surr_table = None
 
         # Check process to be analysed.
-        if type(process) is not int or process < 0:
+        if not isinstance(process, int) or process < 0:
             raise RuntimeError(
-                "The index of the process ({0}) has to be an "
-                "int >= 0.".format(process)
+                f"The index of the process ({process}) has to be an int >= 0."
             )
         if process > data.n_processes:
             raise RuntimeError(
-                "Trying to analyse process with index {0}, "
-                "which greater than the number of processes in "
-                "the data ({1}).".format(process, data.n_processes)
+                f"Trying to analyse process with index {process}, which greater than the number "
+                f"of processes in the data ({data.n_processes})."
             )
         self.process = process
 
         # Check provided search depths for source and target
         assert data.n_samples >= self.settings["max_lag"] + 1, (
-            "Not enough samples in data ({0}) to allow for the chosen maximum "
-            "lag ({1})".format(data.n_samples, self.settings["max_lag"])
+            f"Not enough samples in data ({data.n_samples}) to allow for the chosen maximum lag "
+            f"({self.settings['max_lag']})"
         )
         self.current_value = (process, self.settings["max_lag"])
         [cv_realisation, repl_idx] = data.get_realisations(
@@ -373,7 +369,7 @@ class ActiveInformationStorage(SingleProcessAnalysis):
         """
         success = False
         if self.settings["verbose"]:
-            print("testing candidate set: {0}".format(self._idx_to_lag(candidate_set)))
+            print(f"testing candidate set: {self._idx_to_lag(candidate_set)}")
         while candidate_set:
             # Get realisations for all candidates.
             cand_real = data.get_realisations(self.current_value, candidate_set)[0]
@@ -507,13 +503,9 @@ class ActiveInformationStorage(SingleProcessAnalysis):
                     conditional_realisations = None
                     re_use = ["var2", "conditional"]
                 else:
-                    conditional_realisations[
-                        i_1:i_2,
-                    ] = temp_cond
+                    conditional_realisations[i_1:i_2,] = temp_cond
                     re_use = ["var2"]
-                candidate_realisations[
-                    i_1:i_2,
-                ] = temp_cand
+                candidate_realisations[i_1:i_2,] = temp_cand
                 i_1 = i_2
                 i_2 += data.n_realisations(self.current_value)
 
@@ -529,10 +521,9 @@ class ActiveInformationStorage(SingleProcessAnalysis):
                 # The algorithm cannot continue here, so we'll terminate the
                 # pruning check, assuming that we need not prune any more
                 print(
-                    "AlgorithmExhaustedError encountered in "
-                    "estimations: " + aee.message
+                    "AlgorithmExhaustedError encountered in estimations: " + aee.message
                 )
-                print("Halting current pruning and allowing others to" " remain.")
+                print("Halting current pruning and allowing others to remain.")
                 # For now we don't need a stack trace:
                 # traceback.print_tb(aee.__traceback__)
                 break
@@ -541,11 +532,7 @@ class ActiveInformationStorage(SingleProcessAnalysis):
             te_min_candidate = min(temp_te)
             min_candidate = self.selected_vars_sources[np.argmin(temp_te)]
             if self.settings["verbose"]:
-                print(
-                    "testing candidate: {0}".format(
-                        self._idx_to_lag([min_candidate])[0]
-                    )
-                )
+                print(f"testing candidate: {self._idx_to_lag([min_candidate])[0]}")
             remaining_candidates = set(self.selected_vars_sources).difference(
                 set([min_candidate])
             )
@@ -565,10 +552,9 @@ class ActiveInformationStorage(SingleProcessAnalysis):
                 #  we'll terminate the min statistics
                 #  assuming that we need not prune any more
                 print(
-                    "AlgorithmExhaustedError encountered in "
-                    "estimations: " + aee.message
+                    "AlgorithmExhaustedError encountered in estimations: " + aee.message
                 )
-                print("Halting current pruning and allowing others to" " remain.")
+                print("Halting current pruning and allowing others to remain.")
                 # For now we don't need a stack trace:
                 # traceback.print_tb(aee.__traceback__)
                 break
@@ -592,13 +578,9 @@ class ActiveInformationStorage(SingleProcessAnalysis):
         """Perform statistical test on AIS using the final conditional set."""
         if self._selected_vars_full:
             if self.settings["verbose"]:
-                print(
-                    "selected sources: {0}".format(
-                        self._idx_to_lag(self.selected_vars_full)
-                    )
-                )
+                print(f"selected sources: {self._idx_to_lag(self.selected_vars_full)}")
             try:
-                [ais, s, p] = stats.mi_against_surrogates(self, data)
+                ais, s, p = stats.mi_against_surrogates(self, data)
             except ex.AlgorithmExhaustedError as aee:
                 # The algorithm cannot continue here, so
                 #  we'll set the results to zero
@@ -618,7 +600,7 @@ class ActiveInformationStorage(SingleProcessAnalysis):
 
             # If a parallel estimator was used, an array of AIS estimates is
             # returned. Make the output uniform for both estimator types.
-            if type(ais) is np.ndarray:
+            if isinstance(ais, np.ndarray):
                 assert ais.shape[0] == 1, "AIS result is not a scalar."
                 ais = ais[0]
 
@@ -640,8 +622,7 @@ class ActiveInformationStorage(SingleProcessAnalysis):
                         "final local AIS estimations: " + aee.message
                     )
                     print(
-                        "Setting all local results to zero (but leaving"
-                        " surrogate statistical test results)"
+                        "Setting all local results to zero (but leaving surrogate statistical test results)"
                     )
                     # For now we don't need a stack trace:
                     # traceback.print_tb(aee.__traceback__)
@@ -670,9 +651,7 @@ class ActiveInformationStorage(SingleProcessAnalysis):
         """Enforce a given conditioning set."""
         if type(cond) is tuple:  # easily add single variable
             cond = [cond]
-        print(
-            "Adding the following variables to the conditioning set: {0}.".format(cond)
-        )
+        print(f"Adding the following variables to the conditioning set: {cond}.")
         cond_idx = self._lag_to_idx(cond)
         self._append_selected_vars(
             cond_idx, data.get_realisations(self.current_value, cond_idx)[0]

@@ -73,6 +73,9 @@ class Data:
         np.random.seed(seed)
         self.initial_state = np.random.get_state()
         self.normalise = normalise
+        self.n_processes = 0
+        self.n_samples = 0
+        self.n_replications = 0
         if data is not None:
             self.set_data(data, dim_order)
 
@@ -101,14 +104,12 @@ class Data:
         """
         if current_value is None:
             return self.n_samples
-        else:
-            if current_value[1] >= self.n_samples:
-                raise RuntimeError(
-                    "The sample index of the current value "
-                    "({0}) is larger than the number of samples"
-                    " in the data set ({1}).".format(current_value, self.n_samples)
-                )
-            return self.n_samples - current_value[1]
+        if current_value[1] >= self.n_samples:
+            raise RuntimeError(
+                f"The sample index of the current value ({current_value}) is larger than the"
+                f" number of samples in the data set ({self.n_samples})."
+            )
+        return self.n_samples - current_value[1]
 
     def n_realisations_repl(self):
         """Number of realisations over replications."""
@@ -126,8 +127,7 @@ class Data:
                 "You can not assign a value to this attribute"
                 " directly, use the set_data method instead."
             )
-        else:
-            self._data = d
+        self._data = d
 
     @data.deleter
     def data(self):
@@ -149,8 +149,8 @@ class Data:
             raise RuntimeError("dim_order can not have more than three " "entries")
         if len(dim_order) != data.ndim:
             raise RuntimeError(
-                "Data array dimension ({0}) and length of "
-                "dim_order ({1}) are not equal.".format(data.ndim, len(dim_order))
+                f"Data array dimension ({data.ndim}) and length of "
+                f"dim_order ({len(dim_order)}) are not equal."
             )
 
         # Bring data into the order processes x samples x replications and set
@@ -263,10 +263,9 @@ class Data:
             return None, None
         # Check if requested indices are smaller than the current_value.
         if not all(np.array([x[1] for x in idx_list]) <= current_value[1]):
-            print("Index list: {0}\ncurrent value: {1}".format(idx_list, current_value))
+            print(f"Index list: {idx_list}\ncurrent value: {current_value}")
             raise RuntimeError(
-                "All indices for which data is retrieved must "
-                " be smaller than the current value."
+                "All indices for which data is retrieved must be smaller than the current value."
             )
 
         # Allocate memory.
@@ -306,9 +305,9 @@ class Data:
                     )
                 r += n_real_time
 
-            assert not np.isnan(realisations[:, i]).any(), (
-                "There are nans " "in the retrieved" " realisations."
-            )
+            assert not np.isnan(
+                realisations[:, i]
+            ).any(), "There are nans in the retrieved realisations."
             i += 1
 
         # For each realisation keep the index of the replication it came from.
@@ -323,7 +322,7 @@ class Data:
         """Return data slice for a single process.
 
         Return data slice for process. Optionally, an offset can be provided
-        such that data are returnded from sample 'offset_samples' onwards.
+        such that data are returned from sample 'offset_samples' onwards.
         Also, data
         can be shuffled over replications to create surrogate data for
         statistical testing. For shuffling, data blocks are permuted over
@@ -363,7 +362,7 @@ class Data:
                 list of replications indices
         """
         # Check if requested indices are smaller than the current_value.
-        if not offset_samples <= self.n_samples:
+        if offset_samples > self.n_samples:
             print(
                 "Offset {0} must be smaller than number of samples in the "
                 " data ({1})".format(offset_samples, self.n_samples)
@@ -388,9 +387,9 @@ class Data:
                     process, offset_samples, self.n_processes, self.n_samples
                 )
             )
-        assert not np.isnan(data_slice).any(), (
-            "There are nans in the " "retrieved data slice."
-        )
+        assert not np.isnan(
+            data_slice
+        ).any(), "There are nans in the retrieved data slice."
         return data_slice.T, replication_index
 
     def slice_permute_replications(self, process):
@@ -492,7 +491,7 @@ class Data:
                 data slice with data permuted over samples with dimensions
                 samples x number of replications
             numpy array
-                index of permutet samples
+                index of permuted samples
 
         Note:
             This permutation scheme is the fall-back option if the number of
@@ -546,7 +545,7 @@ class Data:
         Raises:
             TypeError if idx_realisations is not a list
         """
-        if type(idx_list) is not list:
+        if not isinstance(idx_list, list):
             raise TypeError("idx needs to be a list of tuples.")
         return self.get_realisations(current_value, idx_list, shuffle=True)
 
@@ -700,34 +699,34 @@ class Data:
         """
         perm_type = perm_settings["perm_type"]
 
-        # Get the permutaion 'mask' for one replication (the same mask is then
+        # Get the permutation 'mask' for one replication (the same mask is then
         # applied to each replication).
         if perm_type == "random":
             perm = np.random.permutation(n_samples)
 
         elif perm_type == "circular":
             max_shift = perm_settings["max_shift"]
-            if type(max_shift) is not int or max_shift < 1:
+            if not isinstance(max_shift, int) or max_shift < 1:
                 raise TypeError(" " "max_shift" " has to be an int > 0.")
             perm = self._circular_shift(n_samples, max_shift)[0]
 
         elif perm_type == "block":
             block_size = perm_settings["block_size"]
             perm_range = perm_settings["perm_range"]
-            if type(block_size) is not int or block_size < 1:
+            if not isinstance(block_size, int) or block_size < 1:
                 raise TypeError(" " "block_size" " has to be an int > 0.")
-            if type(perm_range) is not int or perm_range < 1:
+            if not isinstance(perm_range, int) or perm_range < 1:
                 raise TypeError(" " "perm_range" " has to be an int > 0.")
             perm = self._swap_blocks(n_samples, block_size, perm_range)
 
         elif perm_type == "local":
             perm_range = perm_settings["perm_range"]
-            if type(perm_range) is not int or perm_range < 1:
+            if not isinstance(perm_range, int) or perm_range < 1:
                 raise TypeError(" " "perm_range" " has to be an int > 0.")
             perm = self._swap_local(n_samples, perm_range)
 
         else:
-            raise ValueError("Unknown permutation type ({0}).".format(perm_type))
+            raise ValueError(f"Unknown permutation type ({perm_type}).")
         return perm
 
     def _swap_local(self, n, perm_range):
@@ -748,9 +747,8 @@ class Data:
             "otherwise there is nothing to permute.",
         )
         assert n >= perm_range, (
-            "Not enough realisations per replication "
-            "({0}) to allow for the requested "
-            '"perm_range" of {1}.'.format(n, perm_range)
+            f"Not enough realisations per replication ({n}) to allow for the requested "
+            f"'perm_range' of {perm_range}."
         )
 
         if perm_range == n:  # permute all n samples randomly
@@ -844,13 +842,12 @@ class Data:
                 no. samples by which the time series was shifted
         """
         assert max_shift <= n, (
-            "Max_shift ({0}) has to be equal to or "
-            "smaller than the number of samples in the "
-            "time series ({1}).".format(max_shift, n)
+            f"Max_shift ({max_shift}) has to be equal to or smaller than the number of samples in the "
+            f"time series ({n})."
         )
         shift = np.random.randint(low=1, high=max_shift + 1)
         if VERBOSE:
-            print("replications are shifted by {0} samples".format(shift))
+            print(f"replications are shifted by {shift} samples")
         return np.hstack((np.arange(n - shift, n), np.arange(n - shift))), shift
 
     def generate_mute_data(self, n_samples=1000, n_replications=10):
@@ -858,8 +855,8 @@ class Data:
 
         Generate example data and overwrite the instance's current data. The
         network is used as an example the paper on the MuTE toolbox (Montalto,
-        PLOS ONE, 2014, eq. 14) and was originally proposed by Baccala &
-        Sameshima (2001). The network consists of five autoregressive (AR)
+        PLOS ONE, 2014, eq. 14) and was orginally proposed by Baccala &
+        Sameshima (2001). The network consists of five auto-regressive (AR)
         processes with model orders 2 and the following (non-linear) couplings:
 
         0 -> 1, u = 2 (non-linear)
@@ -885,8 +882,6 @@ class Data:
                 number of replications
         """
         n_processes = 5
-        n_samples = n_samples
-        n_replications = n_replications
 
         x = np.zeros((n_processes, n_samples + 3, n_replications))
         x[:, 0:3, :] = np.random.normal(size=(n_processes, 3, n_replications))
@@ -922,7 +917,7 @@ class Data:
         coefficient_matrices=np.array([[[0.5, 0], [0.4, 0.5]]]),
         noise_std=0.1,
     ):
-        """Generate discrete-time VAR (vector autoregressive) time series.
+        """Generate discrete-time VAR (vector auto-regressive) time series.
 
         Generate data and overwrite the instance's current data.
 
@@ -957,11 +952,11 @@ class Data:
             n_processes * (order - 1)
         )
         # Condition for stability: the absolute values of all the eigenvalues
-        # of the reduced-form coefficeint matrix are smaller than 1. A stable
+        # of the reduced-form coefficient matrix are smaller than 1. A stable
         # VAR process is also stationary.
         is_stable = max(np.abs(np.linalg.eigvals(var_reduced_form))) < 1
         if not is_stable:
-            RuntimeError("VAR process is not stable and may be nonstationary.")
+            raise RuntimeError("VAR process is not stable and may be nonstationary.")
 
         # Initialise time series matrix. The 3 dimensions represent
         # (processes, samples, replications). Only the last n_samples will be

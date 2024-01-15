@@ -583,13 +583,9 @@ def max_statistic_sequential(analysis_setup, data):
             conditional_realisations = None
             re_use = ["var2", "conditional"]
         else:
-            conditional_realisations[
-                i_1:i_2,
-            ] = conditional_realisations_current
+            conditional_realisations[i_1:i_2,] = conditional_realisations_current
             re_use = ["var2"]
-        candidate_realisations[
-            i_1:i_2,
-        ] = candidate_realisations_current
+        candidate_realisations[i_1:i_2,] = candidate_realisations_current
         i_1 = i_2
         i_2 += data.n_realisations(analysis_setup.current_value)
 
@@ -680,12 +676,7 @@ def max_statistic_sequential(analysis_setup, data):
     pvalue = np.ones(individual_stat.shape[0])
     for c in range(individual_stat.shape[0]):
         [s, p] = _find_pvalue(
-            individual_stat_sorted[c],
-            max_distribution[
-                c,
-            ],
-            alpha,
-            tail="one_bigger",
+            individual_stat_sorted[c], max_distribution[c,], alpha, tail="one_bigger"
         )
         significance[c] = s
         pvalue[c] = p
@@ -833,16 +824,12 @@ def max_statistic_sequential_bivariate(analysis_setup, data):
             else:
                 re_use = ["var2"]
                 if conditional_realisations_target is None:
-                    conditional_realisations[
-                        i_1:i_2,
-                    ] = temp_cond
+                    conditional_realisations[i_1:i_2,] = temp_cond
                 else:
-                    conditional_realisations[
-                        i_1:i_2,
-                    ] = np.hstack((temp_cond, conditional_realisations_target))
-            candidate_realisations[
-                i_1:i_2,
-            ] = temp_cand
+                    conditional_realisations[i_1:i_2,] = np.hstack(
+                        (temp_cond, conditional_realisations_target)
+                    )
+            candidate_realisations[i_1:i_2,] = temp_cand
             i_1 = i_2
             i_2 += data.n_realisations(analysis_setup.current_value)
 
@@ -931,9 +918,7 @@ def max_statistic_sequential_bivariate(analysis_setup, data):
         for c in range(individual_stat.shape[0]):
             [s, p] = _find_pvalue(
                 individual_stat_sorted[c],
-                max_distribution[
-                    c,
-                ],
+                max_distribution[c,],
                 alpha,
                 tail="one_bigger",
             )
@@ -1638,9 +1623,7 @@ def _get_surrogates(data, current_value, idx_list, n_perm, perm_settings):
             data, n_perm
         ), "Not enough replications for surrogate creation."
         for perm in range(n_perm):
-            surrogates[i_1:i_2,] = data.permute_replications(
-                current_value, idx_list
-            )[0]
+            surrogates[i_1:i_2,] = data.permute_replications(current_value, idx_list)[0]
             i_1 = i_2
             i_2 += n_realisations
     return surrogates

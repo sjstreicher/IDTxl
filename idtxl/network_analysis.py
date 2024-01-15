@@ -22,6 +22,7 @@ class NetworkAnalysis:
     """
 
     def __init__(self):
+        self.settings = {}
         self.target = None
         self.current_value = None
         self.selected_vars_full = []

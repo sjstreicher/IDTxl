@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from . import idtxl_exceptions as ex
-from . import idtxl_io as io
 
 try:
     import networkx as nx
@@ -22,7 +21,7 @@ def plot_network(results, weights, fdr=True):
     """Plot network of multivariate TE between processes.
 
     Plot graph of the network of (multivariate) interactions between processes
-    (e.g., multivariate TE). The function uses  the networkx class for directed
+    (e.g., multivariate TE). The function uses the networkx class for directed
     graphs (DiGraph) internally. Plots a network and adjacency matrix.
 
     Args:
@@ -32,7 +31,7 @@ def plot_network(results, weights, fdr=True):
             for single network inference, it can either be
 
                 - 'max_te_lag': the weights represent the source -> target
-                   lag corresponding to the maximum tranfer entropy value
+                   lag corresponding to the maximum transfer entropy value
                    (see documentation for method get_target_delays for details)
                 - 'max_p_lag': the weights represent the source -> target
                    lag corresponding to the maximum p-value
@@ -112,8 +111,7 @@ def plot_selected_vars(
     # Adjust color and position of nodes (variables).
     pos = nx.spring_layout(graph)
     color = ["lavender" for c in range(graph.number_of_nodes())]
-    for (ind, n) in enumerate(graph.nodes):
-
+    for ind, n in enumerate(graph.nodes):
         # Adjust posistions of nodes.
         if n == current_value:
             pos[n] = np.array([max_lag, 0])
@@ -180,60 +178,8 @@ def _plot_graph(graph, axis, weights=None, display_edge_labels=True):
 
 
 def _plot_adj_matrix(
-    adj_matrix, mat_color="gray_r", diverging=False, cbar_label="", cbar_stepsize=1
+    adj_matrix, mat_color="gray_r", diverging=False, cbar_label="delay", cbar_stepsize=1
 ):
-    """Plot adjacency matrix."""
-    # Plot matrix, set minimum and maximum values to the same value for
-    # diverging plots to center colormap at 0, i.e., 0 is plotted in white
-    # https://stackoverflow.com/questions/25500541/
-    # matplotlib-bwr-colormap-always-centered-on-zero
-    if diverging:
-        max_val = np.max(abs(adj_matrix.weight_matrix))
-        min_val = -max_val
-    else:
-        max_val = np.max(adj_matrix.weight_matrix)
-        min_val = -np.min(adj_matrix.weight_matrix)
-
-    adj_matrix_masked = np.ma.masked_where(
-        np.invert(adj_matrix.edge_matrix), adj_matrix.weight_matrix
-    )
-    plt.imshow(
-        adj_matrix_masked,
-        cmap=mat_color,
-        interpolation="nearest",
-        vmin=min_val,
-        vmax=max_val,
-    )
-
-    # Set the colorbar and make colorbar match the image in size using the
-    # fraction and pad parameters (see https://stackoverflow.com/a/26720422).
-    cbar_ticks = np.arange(0, max_val + 1, cbar_stepsize)
-    if cbar_label == "max_te_lag":
-        cbar_label = "delay [samples]"
-    elif cbar_label == "max_p_lag":
-        cbar_label = "max p-value lag [samples]"
-    elif cbar_label == "vars_count":
-        cbar_label = "# of selected vars"
-    elif cbar_label == "binary":
-        cbar_label = "Binary adjacency matrix"
-    elif cbar_label == "p-value":
-        # cbar_ticks = np.arange(0, 1.001, 0.1)
-        cbar_ticks = np.arange(0, max_val * 1.01, max_val / 5)
-    else:
-        cbar_ticks = np.arange(min_val, max_val + 0.01 * max_val, cbar_stepsize)
-    cbar = plt.colorbar(fraction=0.046, pad=0.04, ticks=cbar_ticks)
-    cbar.set_label(cbar_label, rotation=90)
-
-    # Set x- and y-ticks.
-    plt.xticks(np.arange(adj_matrix.n_nodes()))
-    plt.yticks(np.arange(adj_matrix.n_nodes()))
-    ax = plt.gca()
-    ax.xaxis.tick_top()
-    return cbar
-
-
-def _plot_adj_matrix(adj_matrix, mat_color='gray_r', diverging=False,
-                     cbar_label='delay', cbar_stepsize=1):
     """Plot adjacency matrix."""
     # Plot matrix, set minimum and maximum values to the same value for
     # diverging plots to center colormap at 0, i.e., 0 is plotted in white
@@ -245,17 +191,17 @@ def _plot_adj_matrix(adj_matrix, mat_color='gray_r', diverging=False,
     else:
         max_val = np.max(adj_matrix)
         min_val = -np.min(adj_matrix)
-    plt.imshow(adj_matrix, cmap=mat_color, interpolation='nearest',
-               vmin=min_val, vmax=max_val)
+    plt.imshow(
+        adj_matrix, cmap=mat_color, interpolation="nearest", vmin=min_val, vmax=max_val
+    )
 
     # Set the colorbar and make colorbar match the image in size using the
     # fraction and pad parameters (see https://stackoverflow.com/a/26720422).
-    if cbar_label == 'delay':
-        cbar_label = 'delay [samples]'
+    if cbar_label == "delay":
+        cbar_label = "delay [samples]"
         cbar_ticks = np.arange(0, max_val + 1, cbar_stepsize)
     else:
-        cbar_ticks = np.arange(min_val, max_val + 0.01 * max_val,
-                               cbar_stepsize)
+        cbar_ticks = np.arange(min_val, max_val + 0.01 * max_val, cbar_stepsize)
     cbar = plt.colorbar(fraction=0.046, pad=0.04, ticks=cbar_ticks)
     cbar.set_label(cbar_label, rotation=90)
 

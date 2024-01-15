@@ -62,6 +62,7 @@ class AdjacencyMatrix:
     def __init__(self, n_nodes, weight_type):
         self.edge_matrix = np.zeros((n_nodes, n_nodes), dtype=bool)
         self.weight_matrix = np.zeros((n_nodes, n_nodes), dtype=weight_type)
+        self.shape = self.weight_matrix.shape
         if np.issubdtype(weight_type, np.integer):
             self._weight_type = np.integer
         elif np.issubdtype(weight_type, np.floating):
@@ -70,6 +71,9 @@ class AdjacencyMatrix:
             self._weight_type = weight_type
         else:
             raise RuntimeError("Unknown weight data type {0}.".format(weight_type))
+
+    def __array__(self):
+        return self.weight_matrix
 
     def n_nodes(self):
         """Return number of nodes."""
@@ -358,23 +362,17 @@ class ResultsSingleProcessAnalysis(Results):
         # Return required key from required _single_process dictionary, dealing
         # with the FDR at a high level
         if process not in self.processes_analysed:
-            raise RuntimeError("No results for process {0}.".format(process))
+            raise RuntimeError(f"No results for process {process}.")
         if fdr:
             try:
                 return self._single_process_fdr[process]
             except AttributeError:
                 raise RuntimeError(
-                    "No FDR-corrected results have been added. Set"
-                    " "
-                    "fdr=False"
-                    " to see uncorrected results."
+                    f"No FDR-corrected results for process {process}. Set fdr=False for uncorrected results."
                 )
             except KeyError:
                 raise RuntimeError(
-                    "No FDR-corrected results for process {0}. Set"
-                    " "
-                    "fdr=False"
-                    " to see uncorrected results.".format(process)
+                    f"No FDR-corrected results for process {process}. Set fdr=False for uncorrected results."
                 )
         else:
             try:
@@ -597,8 +595,10 @@ class ResultsNetworkInference(ResultsNetworkAnalysis):
         for target in self.targets_analysed:
             source_variables.append(
                 {
-                    'target': target,
-                    'selected_vars_sources': self.get_single_target(target=target, fdr=fdr)['selected_vars_sources']
+                    "target": target,
+                    "selected_vars_sources": self.get_single_target(
+                        target=target, fdr=fdr
+                    )["selected_vars_sources"],
                 }
             )
         return source_variables
@@ -656,7 +656,7 @@ class ResultsNetworkInference(ResultsNetworkAnalysis):
         measure = self._get_inference_measure(target)
 
         # Find delay for each source
-        for (ind, s) in enumerate(sources):
+        for ind, s in enumerate(sources):
             if criterion == "max_p":
                 # Find the minimum p-value amongst the variables in source s
                 delays_ind = np.argmin(pval[all_vars_sources == s])
@@ -1015,14 +1015,14 @@ class ResultsNetworkComparison(ResultsNetworkAnalysis):
             adjacency_matrix = AdjacencyMatrix(self.data_properties.n_nodes, float)
             for t in self.targets_analysed:
                 sources = self.get_target_sources(t)
-                for (i, s) in enumerate(sources):
+                for i, s in enumerate(sources):
                     print(self.cmi_diff_abs)
                     adjacency_matrix.add_edge(s, t, self.cmi_diff_abs[t][i])
         elif weights == "pvalue":
             adjacency_matrix = AdjacencyMatrix(self.data_properties.n_nodes, float)
             for t in self.targets_analysed:
                 sources = self.get_target_sources(t)
-                for (i, s) in enumerate(sources):
+                for i, s in enumerate(sources):
                     adjacency_matrix.add_edge(s, t, self.pval[t][i])
         else:
             raise RuntimeError("Invalid weights value")
@@ -1092,7 +1092,7 @@ class ResultsNetworkComparison(ResultsNetworkAnalysis):
         return np.unique(np.array([s[0] for s in v]))
 
 
-class ResultsSingleProcessRudelt():
+class ResultsSingleProcessRudelt:
     """Store results of single process analysis.
 
     Provides a container for the results Rudelt optimization algorithm. To
@@ -1120,9 +1120,7 @@ class ResultsSingleProcessRudelt():
 
     def __init__(self, processes):
         self.settings = DotDict({})
-        self.data_properties = DotDict({
-                'n_processes': len(processes)
-        })
+        self.data_properties = DotDict({"n_processes": len(processes)})
         self.processes_analysed = np.zeros(shape=3, dtype=int)
         self._single_process = {}
         for ii in processes:
@@ -1139,10 +1137,12 @@ class ResultsSingleProcessRudelt():
 
     def _add_single_result(self, process_count, process, results, settings):
         """Add analysis result for a single process."""
-        #self._check_result(process, settings)
+        # self._check_result(process, settings)
         self.settings.update(DotDict(settings))
         self._single_process[process] = DotDict(results)
-        self.processes_analysed[process_count] = process #list(self._single_process.keys())
+        self.processes_analysed[
+            process_count
+        ] = process  # list(self._single_process.keys())
 
     def get_single_process(self, process):
         """Return results for a single process.
@@ -1197,12 +1197,11 @@ class ResultsSingleProcessRudelt():
         """
         # Return required key from required _single_process dictionary
         if process not in self.processes_analysed:
-            raise RuntimeError('No results for process {0}.'.format(process))
+            raise RuntimeError("No results for process {0}.".format(process))
 
         try:
             return self._single_process[process]
         except AttributeError:
-            raise RuntimeError('No results have been added.')
+            raise RuntimeError("No results have been added.")
         except KeyError:
-            raise RuntimeError(
-                'No results for process {0}.'.format(process))
+            raise RuntimeError("No results for process {0}.".format(process))

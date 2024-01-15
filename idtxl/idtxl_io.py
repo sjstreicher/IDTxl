@@ -139,7 +139,6 @@ def _remove_numpy(data):
 #         return d
 
 
-
 def save_pickle(obj, name):
     """Save objects using Python's pickle module.
 
@@ -484,7 +483,7 @@ def export_networkx_source_graph(results, target, sign_sources=True, fdr=True):
     ]
     # Add edges from selected source variables to the target.
     # Also add TE and p-value as edge attributes
-    for (ind, v) in enumerate(selected_vars_sources):
+    for ind, v in enumerate(selected_vars_sources):
         graph.add_edge(
             v,
             current_value,

@@ -43,6 +43,10 @@ class BivariatePID(SingleProcessAnalysis):
     """
 
     def __init__(self):
+        self._pid_estimator = None
+        self.sources = None
+        self.target = None
+        self.results = None
         super().__init__()
 
     def analyse_network(self, settings, data, targets, sources):
@@ -119,17 +123,11 @@ class BivariatePID(SingleProcessAnalysis):
             n_realisations=data.n_realisations(),
             normalised=data.normalise,
         )
-        for t in range(len(targets)):
+        for t, target in enumerate(targets):
             if settings["verbose"]:
-                print(
-                    "\n####### analysing target with index {0} from list {1}".format(
-                        t, targets
-                    )
-                )
+                print(f"\n####### analysing target with index {t} from list {targets}")
             settings["lags_pid"] = list_of_lags[t]
-            res_single = self.analyse_single_target(
-                settings, data, targets[t], sources[t]
-            )
+            res_single = self.analyse_single_target(settings, data, target, sources[t])
             results.combine_results(res_single)
         # Get no. realisations actually used for estimation from single target
         # analysis.
@@ -199,7 +197,7 @@ class BivariatePID(SingleProcessAnalysis):
         # Estimate PID and significance.
         self._calculate_pid(data)
 
-        # Add analyis info.
+        # Add analysis info.
         results = ResultsPID(
             n_nodes=data.n_processes,
             n_realisations=data.n_realisations(self.current_value),
@@ -227,24 +225,23 @@ class BivariatePID(SingleProcessAnalysis):
             raise RuntimeError("List of lags must have length 2.")
         if self.settings["lags_pid"][0] >= data.n_samples:
             raise RuntimeError(
-                "Lag 1 ({0}) is larger than the number of samples in the data "
-                "set ({1}).".format(self.settings["lags_pid"][0], data.n_samples)
+                f"Lag 1 ({self.settings['lags_pid'][0]}) is larger than the number of "
+                f"samples in the data set ({data.n_samples})."
             )
         if self.settings["lags_pid"][1] >= data.n_samples:
             raise RuntimeError(
-                "Lag 2 ({0}) is larger than the number of samples in the data "
-                "set ({1}).".format(self.settings["lags_pid"][1], data.n_samples)
+                f"Lag 2 ({self.settings['lags_pid'][1]}) is larger than the number of "
+                "samples in the data set ({data.n_samples})."
             )
 
         # Check if target and sources are provided correctly.
-        if type(target) is not int:
+        if not isinstance(target, int):
             raise RuntimeError("Target must be an integer.")
         if len(sources) != 2:
             raise RuntimeError("List of sources must have length 2.")
         if target in sources:
             raise RuntimeError(
-                "The target ({0}) should not be in the list "
-                "of sources ({1}).".format(target, sources)
+                f"The target ({target}) should not be in the list of sources ({sources})."
             )
 
         self.current_value = (target, max(self.settings["lags_pid"]))
@@ -283,14 +280,10 @@ class BivariatePID(SingleProcessAnalysis):
 
         if self.settings["verbose"]:
             print(
-                "\nunq information s1: {0:.8f}, s2: {1:.8f}".format(
-                    orig_pid["unq_s1"], orig_pid["unq_s2"]
-                )
+                f"\nunq information s1: {orig_pid['unq_s1']:.8f}, s2: {orig_pid['unq_s2']:.8f}"
             )
             print(
-                "shd information: {0:.8f}, syn information: {1:.8f}".format(
-                    orig_pid["shd_s1_s2"], orig_pid["syn_s1_s2"]
-                )
+                f"shd information: {orig_pid['shd_s1_s2']:.8f}, syn information: {orig_pid['syn_s1_s2']:.8f}"
             )
         self.results = orig_pid
         self.results["source_1"] = self._idx_to_lag([self.sources[0]])
@@ -310,8 +303,8 @@ class BivariatePID(SingleProcessAnalysis):
         # self.results['shd_p_val'] = p_val_shd
 
         # TODO make mi_against_surrogates in stats more generic, such that
-        # it becomes an arbitrary permutation test where one arguemnt gets
-        # shuffled and then all arguents are passed to the provided estimator
+        # it becomes an arbitrary permutation test where one argument gets
+        # shuffled and then all arguments are passed to the provided estimator
 
     def _reset(self):
         """Reset instance after analysis."""

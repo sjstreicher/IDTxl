@@ -42,6 +42,16 @@ class NetworkComparison(NetworkAnalysis):
     """
 
     def __init__(self):
+        self._cmi_estimator = None
+        self.settings = None
+        self.cmi_surr = None
+        self.cmi_diff = None
+        self.union = None
+        self.cmi_comp = None
+        self.cmi_set_a = None
+        self.cmi_set_b = None
+        self.significance = None
+        self.pvalue = None
         super().__init__()
 
     def compare_links_within(self, settings, link_a, link_b, network, data):
@@ -114,7 +124,7 @@ class NetworkComparison(NetworkAnalysis):
             data, target=link_b[1], sources=link_b[0]
         )
         self.cmi_surr = surrogates_a[0] - surrogates_b[0]
-        [sig, pvalue] = stats._find_pvalue(
+        _, pvalue = stats._find_pvalue(
             statistic=self.cmi_diff,
             distribution=self.cmi_surr,
             alpha=self.settings["alpha_comp"],
@@ -490,13 +500,19 @@ class NetworkComparison(NetworkAnalysis):
         # Compare raw TE values between conditions.
         self.cmi_comp = self._compare_union_cmi_within(cmi_a, cmi_b)
 
-    def _calculate_cmi_diff_between(self):
+    def _calculate_cmi_diff_between(self, data_set_a, data_set_b):
         """Calculate the difference in CMI between two groups of subjects.
 
         Calculate the difference in the conditional mutual information (CMI)
         for each source > target combination in the union network between data
         sets recorded from subjects measured under one of two experimental
         conditions. Compare the absolute mean TE values between the two groups.
+
+        Args:
+            data_set_a : Data instance
+                raw data recorded in condition A
+            data_set_a : Data instance
+                raw data recorded in condition B
 
         Returns:
             numpy array
